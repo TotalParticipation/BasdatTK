@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPay Transaction Form</title>
+</head>
+<body>
+    <h2>MyPay Transaction Form</h2>
+
+    <!-- Dummy User Information -->
+    <div>
+        <p>Welcome, <strong>John Doe</strong></p>
+        <p>Your current saldo: <strong>Rp 150,000</strong></p>
+    </div>
+
+    <!-- Display Today's Date -->
+    <div>
+        <p>Date: <strong>{% now "l, F j, Y" %}</strong></p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Dropdown for Selecting Transaction Category -->
+        <label for="transaction_state">Pilih Kategori Transaksi:</label>
+        <select id="transaction_state" name="category">
+            <option value="">--Pilih Kategori--</option>
+            <option value="topup">TopUp MyPay</option>
+            <option value="service_payment">Bayar Transaksi Jasa</option>
+            <option value="transfer">Transfer MyPay</option>
+            <option value="withdrawal">Withdrawal</option>
+        </select>
+
+        <!-- State 1: TopUp -->
+        <div id="topup-fields" style="display: none;">
+            <label for="id_nominal_topup">Nominal TopUp:</label>
+            <input type="number" id="id_nominal_topup" name="nominal" min="0" step="any">
+        </div>
+
+        <!-- State 2: Service Payment -->
+        <div id="service-payment-fields" style="display: none;">
+            <label for="id_jasa">Jasa yang Dipesan:</label>
+            <select id="id_jasa" name="jasa">
+                <option value="1">Service 1</option>
+                <option value="2">Service 2</option>
+            </select>
+            <label for="id_service_price">Harga Jasa:</label>
+            <input type="number" id="id_service_price" name="service_price" min="0" step="any" readonly>
+        </div>
+
+        <!-- State 3: Transfer -->
+        <div id="transfer-fields" style="display: none;">
+            <label for="id_phone_number">No HP Tujuan:</label>
+            <input type="text" id="id_phone_number" name="phone_number" maxlength="15">
+            <label for="id_nominal_transfer">Nominal Transfer:</label>
+            <input type="number" id="id_nominal_transfer" name="nominal" min="0" step="any">
+        </div>
+
+        <!-- State 4: Withdrawal -->
+        <div id="withdrawal-fields" style="display: none;">
+            <label for="id_bank_name">Nama Bank:</label>
+            <select id="id_bank_name" name="bank_name">
+                <option value="bank1">Bank A</option>
+                <option value="bank2">Bank B</option>
+            </select>
+            <label for="id_bank_account">No Rekening Bank:</label>
+            <input type="text" id="id_bank_account" name="bank_account" maxlength="20">
+            <label for="id_nominal_withdrawal">Nominal Withdrawal:</label>
+            <input type="number" id="id_nominal_withdrawal" name="nominal" min="0" step="any">
+        </div>
+
+        <!-- Submit Button inside the form, initially hidden -->
+        <button id="submit-btn" type="submit" style="display: none;">Submit</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const categoryField = document.getElementById("transaction_state");
+            const topupFields = document.getElementById("topup-fields");
+            const servicePaymentFields = document.getElementById("service-payment-fields");
+            const transferFields = document.getElementById("transfer-fields");
+            const withdrawalFields = document.getElementById("withdrawal-fields");
+            const submitButton = document.getElementById("submit-btn");
+
+            function toggleFields() {
+                const category = categoryField.value;
+                const validCategorySelected = category !== "";
+
+                // Show/Hide the relevant fields based on the selected category
+                topupFields.style.display = (category === "topup") ? "block" : "none";
+                servicePaymentFields.style.display = (category === "service_payment") ? "block" : "none";
+                transferFields.style.display = (category === "transfer") ? "block" : "none";
+                withdrawalFields.style.display = (category === "withdrawal") ? "block" : "none";
+
+                // Show the submit button if a valid category is selected
+                submitButton.style.display = validCategorySelected ? "block" : "none";
+            }
+
+            categoryField.addEventListener("change", toggleFields);
+            toggleFields();  // Call on page load to set initial state
+        });
+    </script>
+</body>
+</html>
