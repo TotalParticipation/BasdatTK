@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: black;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 10px;
+            border: 1px solid black;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .order-card {
+            border: 1px solid black;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .order-details {
+            margin-bottom: 10px;
+        }
+
+        .order-details p {
+            margin: 5px 0;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 10px 15px;
+            text-align: center;
+            border: 1px solid black;
+            cursor: pointer;
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        .action-button:hover {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Service Orders</h2>
+
+        <!-- Filter Section -->
+        <div class="filter-container">
+            <select id="category" onchange="updateSubcategories()">
+                <option value="">-- Pilih Kategori --</option>
+                <option value="home_cleaning">Home Cleaning</option>
+                <option value="massage">Massage</option>
+            </select>
+
+            <select id="subcategory">
+                <option value="">-- Pilih Subkategori --</option>
+            </select>
+
+            <button onclick="filterOrders()">Search</button>
+        </div>
+
+        <!-- Orders List -->
+        <div id="orders-list">
+            <!-- Example Hardcoded Cards -->
+            <div class="order-card">
+                <div class="order-details">
+                    <p><strong>Subkategori Pesanan:</strong> Daily Cleaning</p>
+                    <p><strong>Nama Pelanggan:</strong> Jane Doe</p>
+                    <p><strong>Total Biaya:</strong> Rp 100,000</p>
+                    <p><strong>Tanggal Pemesanan:</strong> 2024-11-16</p>
+                    <p><strong>Tanggal Pekerjaan:</strong> 2024-11-18</p>
+                </div>
+                <button class="action-button">Kerjakan Pesanan</button>
+            </div>
+
+            <div class="order-card">
+                <div class="order-details">
+                    <p><strong>Subkategori Pesanan:</strong> Setrika</p>
+                    <p><strong>Nama Pelanggan:</strong> John Smith</p>
+                    <p><strong>Total Biaya:</strong> Rp 75,000</p>
+                    <p><strong>Tanggal Pemesanan:</strong> 2024-11-15</p>
+                    <p><strong>Tanggal Pekerjaan:</strong> 2024-11-17</p>
+                </div>
+                <button class="action-button">Kerjakan Pesanan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dummy Subcategories Data
+        const subcategories = {
+            home_cleaning: ["Setrika", "Daily Cleaning", "Pembersihan Dapur"],
+            massage: ["Full Body Massage", "Foot Massage"]
+        };
+
+        function updateSubcategories() {
+            const category = document.getElementById("category").value;
+            const subcategoryDropdown = document.getElementById("subcategory");
+            subcategoryDropdown.innerHTML = '<option value="">-- Pilih Subkategori --</option>';
+
+            if (category && subcategories[category]) {
+                subcategories[category].forEach(sub => {
+                    const option = document.createElement("option");
+                    option.value = sub.toLowerCase().replace(" ", "_");
+                    option.textContent = sub;
+                    subcategoryDropdown.appendChild(option);
+                });
+            }
+        }
+
+        function filterOrders() {
+            // Add filtering logic based on selected category and subcategory
+            alert("Filtering orders...");
+        }
+    </script>
+</body>
+</html>

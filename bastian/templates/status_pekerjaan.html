@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Pekerjaan Jasa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+
+    .filter-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .filter-section input, 
+    .filter-section select, 
+    .filter-section button {
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 5px;
+      font-size: 14px;
+      background-color: white;
+      color: black;
+    }
+
+    .filter-section input {
+      flex: 2;
+      margin-right: 10px;
+    }
+
+    .filter-section select {
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .filter-section button {
+      flex: 0.5;
+      cursor: pointer;
+    }
+
+    .filter-section button:hover {
+      background-color: black;
+      color: white;
+    }
+
+    .order-list {
+      border: 1px solid black;
+      border-radius: 5px;
+      padding: 15px;
+    }
+
+    .order-item {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid black;
+      padding: 10px 0;
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .order-header div {
+      flex: 1;
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .order-footer div {
+      flex: 1;
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    .order-actions {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .order-actions button {
+      padding: 5px 10px;
+      margin-left: 5px;
+      border: 1px solid black;
+      border-radius: 5px;
+      background-color: white;
+      color: black;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .order-actions button:hover {
+      background-color: black;
+      color: white;
+    }
+
+    .button-disabled {
+      background-color: white;
+      color: gray;
+      border-color: gray;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Status Pekerjaan Jasa</h1>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <input type="text" placeholder="Nama Jasa" />
+    <select>
+      <option value="">Status Pesanan</option>
+      <option value="menunggu">Menunggu Pekerja Berangkat</option>
+      <option value="tiba">Pekerja Tiba Di Lokasi</option>
+      <option value="melakukan">Pelayanan Jasa Sedang Dilakukan</option>
+      <option value="selesai">Pesanan Selesai</option>
+    </select>
+    <button>Search</button>
+  </div>
+
+  <!-- Order List -->
+  <div class="order-list">
+    <div class="order-item">
+      <div class="order-header">
+        <div><strong>Nama Subkategori Pesanan:</strong> Cuci Mobil</div>
+        <div><strong>Nama Pelanggan:</strong> Budi Santoso</div>
+        <div><strong>Total Biaya:</strong> Rp 100,000</div>
+      </div>
+      <div class="order-footer">
+        <div><strong>Tanggal Pemesanan:</strong> 2024-11-15</div>
+        <div><strong>Tanggal Pekerjaan:</strong> 2024-11-16</div>
+        <div class="order-actions">
+          <button>Tiba Di Lokasi</button>
+          <button class="button-disabled" disabled>Melakukan Pelayanan Jasa</button>
+          <button class="button-disabled" disabled>Selesai Melakukan Pelayanan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-item">
+      <div class="order-header">
+        <div><strong>Nama Subkategori Pesanan:</strong> Potong Rambut</div>
+        <div><strong>Nama Pelanggan:</strong> Siti Aminah</div>
+        <div><strong>Total Biaya:</strong> Rp 50,000</div>
+      </div>
+      <div class="order-footer">
+        <div><strong>Tanggal Pemesanan:</strong> 2024-11-14</div>
+        <div><strong>Tanggal Pekerjaan:</strong> 2024-11-16</div>
+        <div class="order-actions">
+          <button class="button-disabled" disabled>Tiba Di Lokasi</button>
+          <button>Melakukan Pelayanan Jasa</button>
+          <button class="button-disabled" disabled>Selesai Melakukan Pelayanan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-item">
+      <div class="order-header">
+        <div><strong>Nama Subkategori Pesanan:</strong> Perbaikan AC</div>
+        <div><strong>Nama Pelanggan:</strong> Agus Prabowo</div>
+        <div><strong>Total Biaya:</strong> Rp 500,000</div>
+      </div>
+      <div class="order-footer">
+        <div><strong>Tanggal Pemesanan:</strong> 2024-11-10</div>
+        <div><strong>Tanggal Pekerjaan:</strong> 2024-11-12</div>
+        <div class="order-actions">
+          <button class="button-disabled" disabled>Tiba Di Lokasi</button>
+          <button class="button-disabled" disabled>Melakukan Pelayanan Jasa</button>
+          <button class="button-disabled" disabled>Selesai Melakukan Pelayanan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

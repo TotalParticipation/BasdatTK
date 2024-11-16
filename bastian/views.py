@@ -61,3 +61,13 @@ def transaction_view(request):
             return render(request, 'transaction_form.html', {'form': form})
 
     return render(request, 'transaction_form.html', {'form': form})
+
+def mypay_dashboard(request):
+    return render(request, 'mypay.html')
+
+def pekerjaan_dashboard(request):
+    return render(request, 'pekerjaan_jasa.html')
+
+def status_pekerjaan_dashboard(request):
+    return render(request, 'status_pekerjaan.html')
+

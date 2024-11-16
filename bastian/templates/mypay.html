@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPay Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header div {
+            flex: 1;
+            text-align: center;
+        }
+        .transactions {
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div>No HP: <strong>08123456789</strong></div>
+        <div>Saldo: <strong>Rp 150,000</strong></div>
+        <div><a href="{% url 'transaction_view' %}" style="text-decoration: none;"><button>Lakukan Transaksi</button></a></div>
+    </div>
+
+    <!-- Transaction History Section -->
+    <div class="transactions">
+        <h3>Riwayat Transaksi</h3>
+        <div class="transaction-item">
+            <div>+ Rp 50,000</div>
+            <div>15 November 2024</div>
+            <div>TopUp MyPay</div>
+        </div>
+        <div class="transaction-item">
+            <div>- Rp 30,000</div>
+            <div>14 November 2024</div>
+            <div>Bayar Transaksi Jasa</div>
+        </div>
+        <div class="transaction-item">
+            <div>- Rp 20,000</div>
+            <div>13 November 2024</div>
+            <div>Transfer MyPay</div>
+        </div>
+    </div>
+
+    <script>
+        function handleTransaction() {
+            alert("Redirecting to transaction form...");
+            // Implement transaction handling logic or redirection here
+        }
+    </script>
+</body>
+</html>
