@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+    <div class="bg-white shadow-md rounded p-6">
+        <div class="flex flex-wrap mb-4">
+            <!-- Dropdown -->
+            <select id="categoryDropdown" class="mr-4 p-2 border border-gray-300 rounded">
+                <option value="">Kategori</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Search Bar -->
+            <input type="text" id="subcategorySearch" class="flex-grow p-2 border border-gray-300 rounded" placeholder="Nama Subkategori">
+
+            <!-- Search Button -->
+            <button id="searchButton" class="ml-4 bg-blue-500 text-white px-4 py-2 rounded">Search</button>
+        </div>
+
+        <!-- Categories and Subcategories -->
+        <div id="subcategoryList">
+            {% for category in categories %}
+                <div class="border-t border-gray-200 mt-4">
+                    <p class="font-bold py-2">{{ category.name }}</p>
+                    <div class="pl-4">
+                        {% for subcategory in category.subcategories.all %}
+                            <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">
+                                {{ subcategory.name }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
