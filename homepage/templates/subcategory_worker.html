@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+    <div class="bg-white shadow-md rounded p-6">
+
+        <!-- Subcategory Info -->
+        <div class="flex justify-between mb-4">
+            <div>
+                <p class="text-lg font-bold">Nama Subkategori: Subkategori Jasa 1</p>
+            </div>
+            <div>
+                <p class="text-lg">Kategori: Kategori Jasa A</p>
+            </div>
+        </div>
+        <div class="mb-6">
+            <p class="border border-gray-300 p-4 rounded">Deskripsi: Ini adalah deskripsi singkat tentang subkategori jasa ini.</p>
+        </div>
+
+        <!-- Service Sessions -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Pilihan Sesi Layanan</h2>
+            <div class="flex justify-between items-center border-b border-gray-200 py-2">
+                <span>Sesi Layanan: Sesi Layanan 1</span>
+                <span>Harga: Rp 100,000</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-gray-200 py-2">
+                <span>Sesi Layanan: Sesi Layanan 2</span>
+                <span>Harga: Rp 200,000</span>
+            </div>
+        </div>
+
+        <!-- Workers -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Pekerja</h2>
+            <div class="flex flex-wrap gap-4">
+                <div class="border border-gray-300 p-4 rounded cursor-pointer hover:bg-gray-100">Nama Pekerja 1</div>
+                <div class="border border-gray-300 p-4 rounded cursor-pointer hover:bg-gray-100">Nama Pekerja 2</div>
+                <div class="border border-gray-300 p-4 rounded cursor-pointer hover:bg-gray-100">Nama Pekerja 3</div>
+                <div class="border border-gray-300 p-4 rounded cursor-pointer hover:bg-gray-100">Nama Pekerja 4</div>
+            </div>
+            <button class="mt-4 bg-green-500 text-white px-6 py-2 rounded">Button Bergabung</button>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Testimoni</h2>
+            <div class="border-b border-gray-200 py-4">
+                <div class="flex justify-between">
+                    <span>Nama Pengguna: User 1</span>
+                    <span>Tanggal: 2024-11-01</span>
+                </div>
+                <div class="mt-2">Layanan sangat memuaskan!</div>
+                <div class="mt-2">
+                    Nama Pekerja: Nama Pekerja 1 | Rating: 5
+                </div>
+            </div>
+            <div class="border-b border-gray-200 py-4">
+                <div class="flex justify-between">
+                    <span>Nama Pengguna: User 2</span>
+                    <span>Tanggal: 2024-11-02</span>
+                </div>
+                <div class="mt-2">Pelayanan cukup baik.</div>
+                <div class="mt-2">
+                    Nama Pekerja: Nama Pekerja 2 | Rating: 4
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -7,9 +7,9 @@
             <!-- Dropdown -->
             <select id="categoryDropdown" class="mr-4 p-2 border border-gray-300 rounded">
                 <option value="">Kategori</option>
-                {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
-                {% endfor %}
+                <option value="kategori1">Kategori Jasa 1</option>
+                <option value="kategori2">Kategori Jasa 2</option>
+                <option value="kategori3">Kategori Jasa 3</option>
             </select>
 
             <!-- Search Bar -->
@@ -21,18 +21,29 @@
 
         <!-- Categories and Subcategories -->
         <div id="subcategoryList">
-            {% for category in categories %}
-                <div class="border-t border-gray-200 mt-4">
-                    <p class="font-bold py-2">{{ category.name }}</p>
-                    <div class="pl-4">
-                        {% for subcategory in category.subcategories.all %}
-                            <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">
-                                {{ subcategory.name }}
-                            </div>
-                        {% endfor %}
-                    </div>
+            <div class="border-t border-gray-200 mt-4">
+                <p class="font-bold py-2">Kategori Jasa 1</p>
+                <div class="pl-4">
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
                 </div>
-            {% endfor %}
+            </div>
+            <div class="border-t border-gray-200 mt-4">
+                <p class="font-bold py-2">Kategori Jasa 2</p>
+                <div class="pl-4">
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 3</div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-4">
+                <p class="font-bold py-2">Kategori Jasa 3</p>
+                <div class="pl-4">
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 3</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
