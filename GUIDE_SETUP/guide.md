@@ -6,6 +6,7 @@ jalankan di terminal
 
 # kedua bikin file bernama .env
 dan isikan dalamnya sesuai di png contoh_env
+```
     DB_NAME=tugaskelompok1
     DB_USER=postgres
     DB_PASSWORD=passwordxxx
@@ -14,6 +15,7 @@ dan isikan dalamnya sesuai di png contoh_env
     SECRET_KEY=my-django-secret-key
     DEBUG=True
     TEST_VAR=HelloWorld
+```
 
 sesuaikan ama Nama DB lu, kalo gw pilih db dengan nama tugas kelompok1(pake db yg dari tugas kemaren yg udh lengkap)
 user postgres gw juga default jadinya postgres 
@@ -26,7 +28,7 @@ jalankan di terminal
 **python manage.py migrate**
 
 setelah di run harusnya 
-<!-- 
+```
 django_migrations
 django_content_type
 auth_permission
@@ -37,7 +39,8 @@ auth_user_user_permissions
 django_admin_log
 auth_user
 django_session
-System check identified no issues (0 silenced). -->
+System check identified no issues (0 silenced).
+```
 
 akan muncul di terminal
 
@@ -45,6 +48,7 @@ akan muncul di terminal
 bikin views baru
 tambahin kode 
 
+```
 def printTables():
     connection = get_db_connection()
 
@@ -62,10 +66,11 @@ def printTables():
     for row in rows:
         print(row[0])
 printTables()
+```
 
 pastikan urls,py udh bener dan apps.py udh bener
 saat lu masuk ke urls itu
-<!-- 
+```
 Tables in the database:
 kategori_tr_mypay
 sesi_layanan
@@ -99,7 +104,8 @@ System check identified no issues (0 silenced).
 November 27, 2024 - 16:52:38
 Django version 5.1.3, using settings 'TK_BASDAT.settings'
 Starting development server at http://127.0.0.1:8000/
-Quit the server with CTRL-BREAK. -->
+Quit the server with CTRL-BREAK.
+```
 
 kalau sudah seperti ini maka lu sudah successfully konek ke database 
 sisanya belajar sendiri
