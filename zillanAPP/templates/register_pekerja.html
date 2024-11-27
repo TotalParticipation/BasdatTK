@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Registrasi</title>
+</head>
+
+<body>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nama">Nama:</label>
+        <input type="text" id="nama" name="nama"><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+
+        <label>Jenis Kelamin:</label>
+        <input type="radio" id="laki-laki" name="jenis_kelamin" value="L">
+        <label for="laki-laki">L</label>
+        <input type="radio" id="perempuan" name="jenis_kelamin" value="P">
+        <label for="perempuan">P</label><br><br>
+
+        <label for="nohp">NoHP:</label>
+        <input type="text" id="nohp" name="nohp"><br><br>
+
+        <label for="tanggal_lahir">Tanggal Lahir:</label>
+        <input type="date" id="tanggal_lahir" name="tanggal_lahir"><br><br>
+
+        <label for="alamat">Alamat:</label>
+        <input type="text" id="alamat" name="alamat"><br><br>
+
+        <label for="nama_bank">Nama Bank:</label>
+        <select id="nama_bank" name="nama_bank">
+            <option value="bca">BCA</option>
+            <option value="bni">BNI</option>
+            <option value="bri">BRI</option>
+            <option value="mandiri">Mandiri</option>
+            <!-- Add more options as needed -->
+        </select><br><br>
+
+        <label for="no_rekening">No Rekening:</label>
+        <input type="text" id="no_rekening" name="no_rekening"><br><br>
+
+        <label for="npwp">NPWP:</label>
+        <input type="text" id="npwp" name="npwp"><br><br>
+
+        <label for="url_foto">URL Foto:</label>
+        <input type="url" id="url_foto" name="url_foto"><br><br>
+
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>
