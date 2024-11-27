@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pekerja dan Update Profil</title>
+</head>
+{% include "navbar_pekerja.html" %}
+<body>
+    <h2>Pekerja:</h2>
+
+    <!-- Worker Profile Section -->
+    <div style="display: flex;">
+        <div style="border: 1px solid black; padding: 10px; margin-right: 20px;">
+            <p>Nama: {{nama}}</p>
+            <p>Level: {{level}}</p>
+            <p>Jenis Kelamin: {{jeniskelamin}}</p>
+            <p>NoHP: {{nohp}}</p>
+            <p>Tanggal Lahir: {{tgllahir}}</p>
+            <p>Alamat: {{alamat}}</p>
+            <p>Saldo MyPay: {{saldomypay}}</p>
+            <p>Nama Bank: {{namabank}}</p>
+            <p>No Rekening: {{noRekening}}</p>
+            <p>NPWP: {{npwp}}</p>
+            <p>Rating: {{rating}}</p>
+            <p>Jumlah Pesanan Selesai:{{jmlpsnananselesai}} </p>
+            <p>Kategori Pekerjaan:</p>
+            <ul>
+                {% for kategori in categories %}
+                <li>{{ kategori }}</li>
+            {% empty %}
+                <li>Tidak ada kategori pekerjaan yang tersedia.</li>
+            {% endfor %}
+            </ul>
+            <button type="button" onclick="showUpdateForm()">Update</button>
+        </div>
+
+        <!-- Update Form -->
+        <div id="update-form" style="border: 1px solid black; padding: 10px; display: none;">
+            <form method="post">
+                {% csrf_token %}
+                <label for="nama">Nama:</label>
+                <input type="text" id="nama" name="nama"><br><br>
+
+                <label>Jenis Kelamin:</label>
+                <input type="radio" id="laki-laki" name="jenis_kelamin" value="L" {% if jenis_kelamin == 'L' %}checked{% endif %}>
+                <label for="laki-laki">L</label>
+                <input type="radio" id="perempuan" name="jenis_kelamin" value="P" {% if jenis_kelamin == 'P' %}checked{% endif %}>
+                <label for="perempuan">P</label><br><br>
+
+                <label for="nohp">NoHP:</label>
+                <input type="text" id="nohp" name="nohp"><br><br>
+
+                <label for="tanggal_lahir">Tanggal Lahir:</label>
+                <input type="date" id="tanggal_lahir" name="tanggal_lahir"><br><br>
+
+                <label for="alamat">Alamat:</label>
+                <input type="text" id="alamat" name="alamat"><br><br>
+
+                <label for="nama_bank">Nama Bank:</label>
+                <select id="nama_bank" name="nama_bank">
+                    <option value="bca">BCA</option>
+                    <option value="bni">BNI</option>
+                    <option value="bri">BRI</option>
+                    <option value="mandiri">Mandiri</option>
+                    <!-- Add more options as needed -->
+                </select><br><br>
+
+                <label for="no_rekening">No Rekening:</label>
+                <input type="text" id="no_rekening" name="no_rekening"><br><br>
+
+                <label for="npwp">NPWP:</label>
+                <input type="text" id="npwp" name="npwp"><br><br>
+
+                <label for="url_foto">URL Foto:</label>
+                <input type="url" id="url_foto" name="url_foto"><br><br>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showUpdateForm() {
+            document.getElementById("update-form").style.display = "block";
+        }
+    </script>
+</body>
+</html>
