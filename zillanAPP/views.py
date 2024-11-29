@@ -41,6 +41,7 @@ def login_view(request):
                 SELECT id, nama, pwd FROM "user" WHERE nama = %s
             """, [username])
             user = cursor.fetchone()
+            
 
         if user:
             # user[0] is the user ID, user[1] is the name, user[2] is the stored password
@@ -50,6 +51,7 @@ def login_view(request):
             if password == stored_password:
                 # If passwords match, proceed to check if the user is Pelanggan or Pekerja
                 request.session['user_id'] = str(user_id)  # Store user ID in the session
+                
                 request.session['username'] = user_name  # Store username in the session
 
                 with connection.cursor() as cursor:
@@ -58,10 +60,10 @@ def login_view(request):
                         SELECT * FROM pelanggan WHERE id = %s
                     """, [user_id])
                     pelanggan = cursor.fetchone()
-
+                    
                     if pelanggan:
                         # If the user is a Pelanggan, redirect to their profile
-                        
+
                         return redirect("profile_pelanggan")
 
                     # Check if the user is a "Pekerja"
@@ -74,7 +76,7 @@ def login_view(request):
                         # If the user is a Pekerja, redirect to their profile
                        
                         return redirect("profile_pekerja")
-
+                
                 # If neither, you can show an error or redirect to a default page
                 return  # Default redirect if user is neither Pelanggan nor Pekerja
 
@@ -351,6 +353,15 @@ def view_register_pelanggan(request):
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         """, [new_user_id, updated_nama, updated_password, updated_jenis_kelamin, updated_nohp, updated_tanggal_lahir, updated_alamat]
                         )
+
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                        """
+                        INSERT INTO pelanggan (id, level)
+                        VALUES (%s, %s)
+                        """, [new_user_id, "basic"]
+                        )
+
                     connection.commit()  # Commit the transaction to save changes permanently
                     print("pelanggan successfully created")
                     return redirect('login')

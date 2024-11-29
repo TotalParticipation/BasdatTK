@@ -70,7 +70,7 @@
         const form = document.querySelector("#testimonyForm");
         const subkategoriId = form.dataset.subkategoriId;
 
-        fetch(`/no8910/create-testimony-by-ajax/${subkategoriId}`, {
+        fetch(`/no8910/create-testimony/${subkategoriId}`, {
             method: "POST",
             body: new FormData(form),
             
