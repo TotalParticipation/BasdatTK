@@ -351,6 +351,14 @@ def view_register_pelanggan(request):
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         """, [new_user_id, updated_nama, updated_password, updated_jenis_kelamin, updated_nohp, updated_tanggal_lahir, updated_alamat]
                         )
+
+                        
+                        cursor.execute(
+                        """
+                        INSERT INTO pelanggan (id, level)
+                        VALUES (%s, %s)
+                        """, [new_user_id,"basic"]
+                        )
                     connection.commit()  # Commit the transaction to save changes permanently
                     print("pelanggan successfully created")
                     return redirect('login')
