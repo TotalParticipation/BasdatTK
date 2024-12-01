@@ -213,10 +213,12 @@ def get_categories_and_subcategories(request):
 
         # Fetch categories and subcategories
         cursor.execute("""
-            SELECT kj.Id, kj.NamaKategori, sj.Id, sj.NamaSubkategori
-            FROM KATEGORI_JASA kj
-            LEFT JOIN SUBKATEGORI_JASA sj ON kj.Id = sj.KategoriJasaId
-            ORDER BY kj.Id, sj.Id
+SELECT kj.Id AS category_id, kj.NamaKategori AS category_name, 
+       sj.Id AS subcategory_id, sj.NamaSubkategori AS subcategory_name
+FROM KATEGORI_JASA kj
+LEFT JOIN SUBKATEGORI_JASA sj ON kj.Id = sj.KategoriJasaId
+ORDER BY kj.Id, sj.Id;
+
         """)
         data = cursor.fetchall()
 
