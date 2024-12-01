@@ -7,9 +7,9 @@
             <!-- Dropdown -->
             <select id="categoryDropdown" class="mr-4 p-2 border border-gray-300 rounded">
                 <option value="">Kategori</option>
-                <option value="kategori1">Kategori Jasa 1</option>
-                <option value="kategori2">Kategori Jasa 2</option>
-                <option value="kategori3">Kategori Jasa 3</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
             </select>
 
             <!-- Search Bar -->
@@ -21,30 +21,126 @@
 
         <!-- Categories and Subcategories -->
         <div id="subcategoryList">
+            {% for category in categories %}
             <div class="border-t border-gray-200 mt-4">
-                <p class="font-bold py-2">Kategori Jasa 1</p>
+                <p class="font-bold py-2">{{ category.name }}</p>
                 <div class="pl-4">
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
+                    {% for subcategory in category.subcategories %}
+                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">
+                        {{ subcategory.name }}
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            <div class="border-t border-gray-200 mt-4">
-                <p class="font-bold py-2">Kategori Jasa 2</p>
-                <div class="pl-4">
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 3</div>
-                </div>
-            </div>
-            <div class="border-t border-gray-200 mt-4">
-                <p class="font-bold py-2">Kategori Jasa 3</p>
-                <div class="pl-4">
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 1</div>
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 2</div>
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">Subkategori Jasa 3</div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const categoryDropdown = document.getElementById("categoryDropdown");
+    const subcategoryList = document.getElementById("subcategoryList");
+    const searchButton = document.getElementById("searchButton");
+    const subcategorySearch = document.getElementById("subcategorySearch");
+
+    // Fetch categories and subcategories
+    fetch("/homepage/categories/")
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          console.error(data.error);
+          return;
+        }
+        populateCategories(data.categories);
+      })
+      .catch((err) => console.error(err));
+
+    function populateCategories(categories) {
+      // Populate dropdown
+      for (const [id, category] of Object.entries(categories)) {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = category.name;
+        categoryDropdown.appendChild(option);
+      }
+
+      // Populate subcategories
+      renderSubcategories(categories);
+    }
+
+    function renderSubcategories(categories) {
+      subcategoryList.innerHTML = "";
+      for (const [id, category] of Object.entries(categories)) {
+        const categoryDiv = document.createElement("div");
+        categoryDiv.classList.add("border-t", "border-gray-200", "mt-4");
+
+        const categoryTitle = document.createElement("p");
+        categoryTitle.classList.add("font-bold", "py-2");
+        categoryTitle.textContent = category.name;
+        categoryDiv.appendChild(categoryTitle);
+
+        const subcategoryContainer = document.createElement("div");
+        subcategoryContainer.classList.add("pl-4");
+
+        category.subcategories.forEach((sub) => {
+          const subDiv = document.createElement("div");
+          subDiv.classList.add(
+            "py-2",
+            "border-b",
+            "border-gray-200",
+            "cursor-pointer",
+            "hover:bg-gray-100"
+          );
+          subDiv.textContent = sub.name;
+          subcategoryContainer.appendChild(subDiv);
+        });
+
+        categoryDiv.appendChild(subcategoryContainer);
+        subcategoryList.appendChild(categoryDiv);
+      }
+    }
+
+    // Handle Search
+    searchButton.addEventListener("click", function () {
+      const query = subcategorySearch.value.toLowerCase();
+      const categoryId = categoryDropdown.value;
+      fetch(`/homepage/categories/`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.error(data.error);
+            return;
+          }
+          const filteredCategories = filterCategories(
+            data.categories,
+            categoryId,
+            query
+          );
+          renderSubcategories(filteredCategories);
+        })
+        .catch((err) => console.error(err));
+    });
+
+    function filterCategories(categories, categoryId, query) {
+      const filtered = {};
+      for (const [id, category] of Object.entries(categories)) {
+        if (categoryId && id !== categoryId) continue;
+
+        const matchingSubcategories = category.subcategories.filter((sub) =>
+          sub.name.toLowerCase().includes(query)
+        );
+
+        if (matchingSubcategories.length > 0 || !query) {
+          filtered[id] = {
+            name: category.name,
+            subcategories: matchingSubcategories,
+          };
+        }
+      }
+      return filtered;
+    }
+  });
+</script>
+
 {% endblock %}
