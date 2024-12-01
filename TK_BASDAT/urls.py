@@ -16,14 +16,11 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
-from homepage.views import homepage, subcategory_user, subcategory_worker, order
-from django.urls import path, URLResolver
+from django.urls import include, path
+from django.conf.urls.static import static
+from django.conf import settings
 
-urlpatterns: list[URLResolver] = [
-    path("admin/", admin.site.urls),
-    path("homepage/", homepage, name="homepage"),
-    path("subcategory_user", subcategory_user, name="subcategory_user"),
-    path("subcategory_worker", subcategory_worker, name="subcategory_worker"),
-    path("order", order, name="order"),
+urlpatterns = [
+    path('admin/', admin.site.urls),
+     path('', include('zillanAPP.urls')),
 ]

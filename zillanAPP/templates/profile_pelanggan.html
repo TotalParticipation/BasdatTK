@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pengguna dan Update Profil</title>
+</head>
+{% include "navbar_pelanggan.html" %}
+<body>
+   
+    <h2>Pengguna:</h2>
+
+    <!-- User Profile Section -->
+    <div style="display: flex;">
+        <div style="border: 1px solid black; padding: 10px; margin-right: 20px;">
+            <p>Nama: {{nama}}</p>
+            <p>Level: {{level}}</p>
+            <p>Jenis Kelamin: {{jeniskelamin}}</p>
+            <p>NoHP: {{nohp}}</p>
+            <p>Tanggal Lahir: {{tgllahir}}</p>
+            <p>Alamat: {{alamat}}</p>
+            <p>Saldo MyPay: {{saldomypay}}</p>
+            <button type="button" onclick="showUpdateForm()">Update</button>
+        </div>
+        {% if error %}
+        <p style="color: red">{{ error }}</p>
+        {% endif %}
+
+        <!-- Update Form -->
+        <div id="update-form" style="border: 1px solid black; padding: 10px; display: none;">
+            <form method="post">
+                {% csrf_token %}
+                <label for="nama">Nama:</label>
+                <input type="text" id="nama" name="nama"><br><br>
+
+                <label>Jenis Kelamin:</label>
+                <input type="radio" id="laki-laki" name="jenis_kelamin" value="L" {% if jenis_kelamin == 'L' %}checked{% endif %}>
+                <label for="laki-laki">L</label>
+                <input type="radio" id="perempuan" name="jenis_kelamin" value="P" {% if jenis_kelamin == 'P' %}checked{% endif %}>
+                <label for="perempuan">P</label><br><br>
+
+                <label for="nohp">NoHP:</label>
+                <input type="text" id="nohp" name="nohp"><br><br>
+
+                <label for="tanggal_lahir">Tanggal Lahir:</label>
+                <input type="date" id="tanggal_lahir" name="tanggal_lahir"><br><br>
+
+                <label for="alamat">Alamat:</label>
+                <input type="text" id="alamat" name="alamat"><br><br>
+
+                <button type="submit">Submit</button>
+            </form>
+        
+        </div>
+    </div>
+
+    <script>
+        function showUpdateForm() {
+            document.getElementById("update-form").style.display = "block";
+        }
+    </script>
+</body>
+</html>
