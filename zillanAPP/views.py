@@ -31,15 +31,15 @@ from django.shortcuts import render, redirect
 def login_view(request):
     connection = get_db_connection()
     if request.method == "POST":
-        # Get the username/email and password from the form
-        username = request.POST.get('username')
+        # Get the nohp/email and password from the form
+        nohp = request.POST.get('nohp')
         password = request.POST.get('password')
 
-        # Use raw SQL to query the user by username
+        # Use raw SQL to query the user by nohp
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT id, nama, pwd FROM "user" WHERE nama = %s
-            """, [username])
+                SELECT id, nama, pwd FROM "user" WHERE nohp = %s
+            """, [nohp])
             user = cursor.fetchone()
 
         if user:
@@ -350,9 +350,7 @@ def view_register_pelanggan(request):
                         INSERT INTO "user" (id, nama, pwd, jeniskelamin, nohp, tgllahir, alamat)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         """, [new_user_id, updated_nama, updated_password, updated_jenis_kelamin, updated_nohp, updated_tanggal_lahir, updated_alamat]
-                        )
-
-                        
+                        ) 
                         cursor.execute(
                         """
                         INSERT INTO pelanggan (id, level)
