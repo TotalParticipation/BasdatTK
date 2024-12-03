@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyPay Transaction Form</title>
+    <title>Transaction Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,18 +29,8 @@
             flex-direction: column;
         }
 
-        .header button {
-            padding: 10px 15px;
-            background-color: white;
-            color: black;
-            border: 1px solid black;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .header button:hover {
-            background-color: black;
-            color: white;
+        .header p {
+            margin: 5px 0;
         }
 
         .transaction-form {
@@ -83,103 +73,150 @@
         .transaction-section {
             display: none;
         }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
     </style>
-</head>
-<body>
-    <!-- Header Section -->
-    <div class="header">
-        <div>
-            <p><strong>No HP:</strong> 081234567890</p>
-            <p><strong>Saldo:</strong> Rp 150,000</p>
-        </div>
-        <p><strong>Date:</strong> {% now "l, F j, Y" %}</p>
-    </div>
-
-    <!-- Transaction Form -->
-    <div class="transaction-form">
-        <h2>MyPay Transaction Form</h2>
-        <form method="post">
-            {% csrf_token %}
-
-            <!-- Dropdown for Selecting Transaction Category -->
-            <label for="transaction_state">Pilih Kategori Transaksi:</label>
-            <select id="transaction_state" name="category">
-                <option value="">--Pilih Kategori--</option>
-                <option value="topup">TopUp MyPay</option>
-                <option value="service_payment">Bayar Transaksi Jasa</option>
-                <option value="transfer">Transfer MyPay</option>
-                <option value="withdrawal">Withdrawal</option>
-            </select>
-
-            <!-- State 1: TopUp -->
-            <div id="topup-fields" class="transaction-section">
-                <label for="id_nominal_topup">Nominal TopUp:</label>
-                <input type="number" id="id_nominal_topup" name="nominal" min="0" step="any">
-            </div>
-
-            <!-- State 2: Service Payment -->
-            <div id="service-payment-fields" class="transaction-section">
-                <label for="id_jasa">Jasa yang Dipesan:</label>
-                <select id="id_jasa" name="jasa">
-                    <option value="1">Service 1</option>
-                    <option value="2">Service 2</option>
-                </select>
-                <label for="id_service_price">Harga Jasa:</label>
-                <input type="number" id="id_service_price" name="service_price" min="0" step="any" readonly>
-            </div>
-
-            <!-- State 3: Transfer -->
-            <div id="transfer-fields" class="transaction-section">
-                <label for="id_phone_number">No HP Tujuan:</label>
-                <input type="text" id="id_phone_number" name="phone_number" maxlength="15">
-                <label for="id_nominal_transfer">Nominal Transfer:</label>
-                <input type="number" id="id_nominal_transfer" name="nominal" min="0" step="any">
-            </div>
-
-            <!-- State 4: Withdrawal -->
-            <div id="withdrawal-fields" class="transaction-section">
-                <label for="id_bank_name">Nama Bank:</label>
-                <select id="id_bank_name" name="bank_name">
-                    <option value="bank1">Bank A</option>
-                    <option value="bank2">Bank B</option>
-                </select>
-                <label for="id_bank_account">No Rekening Bank:</label>
-                <input type="text" id="id_bank_account" name="bank_account" maxlength="20">
-                <label for="id_nominal_withdrawal">Nominal Withdrawal:</label>
-                <input type="number" id="id_nominal_withdrawal" name="nominal" min="0" step="any">
-            </div>
-
-            <!-- Submit Button inside the form, initially hidden -->
-            <button id="submit-btn" type="submit" style="display: none;">Submit</button>
-        </form>
-    </div>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const categoryField = document.getElementById("transaction_state");
-            const topupFields = document.getElementById("topup-fields");
-            const servicePaymentFields = document.getElementById("service-payment-fields");
-            const transferFields = document.getElementById("transfer-fields");
-            const withdrawalFields = document.getElementById("withdrawal-fields");
-            const submitButton = document.getElementById("submit-btn");
+        document.addEventListener('DOMContentLoaded', function () {
+            const transactionState = document.getElementById('transaction_state');
+            const sections = document.querySelectorAll('.transaction-section');
+            const submitButton = document.getElementById('submit-btn');
+            const servicePriceInput = document.getElementById('id_service_price');
+            const serviceNameInput = document.getElementById('id_service_name');
+            
+            // Show/hide fields based on selected transaction state
+            transactionState.addEventListener('change', function () {
+                const selectedState = transactionState.value;
 
-            function toggleFields() {
-                const category = categoryField.value;
-                const validCategorySelected = category !== "";
+                // Hide all sections initially
+                sections.forEach(section => section.style.display = 'none');
 
-                // Show/Hide the relevant fields based on the selected category
-                topupFields.style.display = (category === "topup") ? "block" : "none";
-                servicePaymentFields.style.display = (category === "service_payment") ? "block" : "none";
-                transferFields.style.display = (category === "transfer") ? "block" : "none";
-                withdrawalFields.style.display = (category === "withdrawal") ? "block" : "none";
+                // Show the relevant section based on selected state
+                if (selectedState) {
+                    const activeSection = document.getElementById(`${selectedState}-fields`);
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                        submitButton.style.display = 'block';  // Make sure submit button is visible
+                    }
+                } else {
+                    submitButton.style.display = 'none'; // Hide submit button when no valid category is selected
+                }
+            });
 
-                // Show the submit button if a valid category is selected
-                submitButton.style.display = validCategorySelected ? "block" : "none";
+            // Trigger the change event to ensure the section is displayed when the page loads with a default selection
+            if (transactionState.value) {
+                transactionState.dispatchEvent(new Event('change'));
             }
 
-            categoryField.addEventListener("change", toggleFields);
-            toggleFields();  // Call on page load to set initial state
+            // Show/hide the service price and service name fields based on the selected jasa
+            const jasaSelect = document.getElementById('id_jasa');
+            jasaSelect.addEventListener('change', function () {
+                const selectedOption = jasaSelect.options[jasaSelect.selectedIndex];
+                const selectedPrice = selectedOption ? selectedOption.getAttribute('data-price') : 0;
+                const selectedName = selectedOption ? selectedOption.textContent : '';
+
+                servicePriceInput.value = selectedPrice;
+                serviceNameInput.value = selectedName;
+            });
+
+            // Ensure the section is displayed if a category is pre-selected
+            transactionState.dispatchEvent(new Event('change'));
         });
     </script>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <p><strong>Saldo:</strong> Rp {{ user_balance|floatformat:0 }}</p>
+        </div>
+        <p><strong>Date:</strong> {{ current_date }}</p>
+    </div>
+
+    <div class="transaction-form">
+        <h2>Transaksi MyPay</h2>
+        <form method="post" action="{% url 'process_transaction' %}">
+            {% csrf_token %}
+
+            <!-- Transaction Category Dropdown -->
+            <div class="form-group">
+                <label for="transaction_state">Pilih Kategori Transaksi:</label>
+                <select id="transaction_state" name="category">
+                    <option value="">--Pilih Kategori--</option>
+                    <option value="topup">TopUp MyPay</option>
+                    {% if user_role == "pelanggan" %}
+                        <option value="service_payment">Bayar Transaksi Jasa</option>
+                    {% endif %}
+                    <option value="transfer">Transfer MyPay</option>
+                    <option value="withdrawal">Withdrawal</option>
+                </select>
+            </div>
+
+            <!-- TopUp Section -->
+            <div id="topup-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_nominal_topup">Nominal TopUp:</label>
+                    <input type="number" id="id_nominal_topup" name="nominal" min="0" step="any" placeholder="Masukkan nominal topup">
+                </div>
+                <button id="submit-btn" type="submit" style="display: none;">Submit</button>
+            </div>
+
+            <!-- Service Payment Section -->
+            <div id="service_payment-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_jasa">Pilih Jasa:</label>
+                    <select id="id_jasa" name="service" required>
+                        <option value="">--Pilih Jasa--</option>
+                        {% for jasa in jasa_options %}
+                            <option value="{{ jasa.0 }}" data-price="{{ jasa.1 }}">{{ jasa.0 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_service_price">Harga Jasa:</label>
+                    <input type="number" id="id_service_price" name="service_price" readonly placeholder="Harga jasa" />
+                </div>
+                <div class="form-group">
+                    <label for="id_service_name">Nama Jasa:</label>
+                    <input type="text" id="id_service_name" name="service_name" readonly placeholder="Nama jasa" />
+                </div>
+            </div>
+
+            <!-- Transfer Section -->
+            <div id="transfer-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_phone_number">No HP Tujuan:</label>
+                    <input type="text" id="id_phone_number" name="phone_number" maxlength="15" placeholder="Masukkan nomor HP tujuan">
+                </div>
+                <div class="form-group">
+                    <label for="id_nominal_transfer">Nominal Transfer:</label>
+                    <input type="number" id="id_nominal_transfer" name="nominal" min="0" step="any" placeholder="Masukkan nominal transfer">
+                </div>
+            </div>
+
+            <!-- Withdrawal Section -->
+            <div id="withdrawal-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_bank_name">Nama Bank:</label>
+                    <select id="id_bank_name" name="bank_name">
+                        <option value="1">Bank Central Asia (BCA)</option>
+                        <option value="2">Bank Mandiri</option>
+                        <option value="3">Bank Negara Indonesia (BNI)</option>
+                        <option value="4">Bank Rakyat Indonesia (BRI)</option>
+                        <option value="5">Bank CIMB Niaga</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_bank_account">No Rekening Bank:</label>
+                    <input type="text" id="id_bank_account" name="bank_account" maxlength="20" placeholder="Masukkan nomor rekening bank">
+                </div>
+                <div class="form-group">
+                    <label for="id_nominal_withdrawal">Nominal Withdrawal:</label>
+                    <input type="number" id="id_nominal_withdrawal" name="nominal" min="0" step="any" placeholder="Masukkan nominal withdrawal">
+                </div>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
