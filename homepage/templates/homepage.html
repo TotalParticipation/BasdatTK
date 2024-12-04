@@ -1,40 +1,58 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="max-w-3xl mx-auto mt-10">
-    <div class="bg-white shadow-md rounded p-6">
-        <div class="flex flex-wrap mb-4">
-            <!-- Dropdown -->
-            <select id="categoryDropdown" class="mr-4 p-2 border border-gray-300 rounded">
-                <option value="">Kategori</option>
-                {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
-                {% endfor %}
-            </select>
+  <div class="bg-white shadow-md rounded p-6">
+    <div class="flex flex-wrap mb-4">
+      <!-- Dropdown -->
+      <select
+        id="categoryDropdown"
+        class="mr-4 p-2 border border-gray-300 rounded">
+        <option value="">Kategori</option>
+        {% for category in categories %}
+        <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+      </select>
 
-            <!-- Search Bar -->
-            <input type="text" id="subcategorySearch" class="flex-grow p-2 border border-gray-300 rounded" placeholder="Nama Subkategori">
+      <!-- Search Bar -->
+      <input
+        type="text"
+        id="subcategorySearch"
+        class="flex-grow p-2 border border-gray-300 rounded"
+        placeholder="Nama Subkategori" />
 
-            <!-- Search Button -->
-            <button id="searchButton" class="ml-4 bg-blue-500 text-white px-4 py-2 rounded">Search</button>
-        </div>
-
-        <!-- Categories and Subcategories -->
-        <div id="subcategoryList">
-            {% for category in categories %}
-            <div class="border-t border-gray-200 mt-4">
-                <p class="font-bold py-2">{{ category.name }}</p>
-                <div class="pl-4">
-                    {% for subcategory in category.subcategories %}
-                    <div class="py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-100">
-                        {{ subcategory.name }}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+      <!-- Search Button -->
+      <button
+        id="searchButton"
+        class="ml-4 bg-blue-500 text-white px-4 py-2 rounded">
+        Search
+      </button>
     </div>
+
+    <!-- Categories and Subcategories -->
+    <div id="subcategoryList">
+      {% for category in categories %}
+      <div class="border-t border-gray-200 mt-4">
+        <p class="font-bold py-2">{{ category.name }}</p>
+        <div class="pl-4">
+          {% for subcategory in category.subcategories %}
+          <div
+            class="flex items-center justify-between py-2 border-b border-gray-200 hover:bg-gray-100">
+            <!-- Subcategory Name -->
+            <span>{{ subcategory.name }}</span>
+
+            <!-- Details Button -->
+            <a
+              href="{% url 'subcategory_detail' subcategory.id %}?role={{ user_role }}"
+              style="visibility: visible; display: block"
+              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Details
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
 <script>
@@ -70,36 +88,60 @@
     }
 
     function renderSubcategories(categories) {
-      subcategoryList.innerHTML = "";
+      console.log(categories);
+
+      
       for (const [id, category] of Object.entries(categories)) {
         const categoryDiv = document.createElement("div");
         categoryDiv.classList.add("border-t", "border-gray-200", "mt-4");
-
+    
         const categoryTitle = document.createElement("p");
         categoryTitle.classList.add("font-bold", "py-2");
         categoryTitle.textContent = category.name;
         categoryDiv.appendChild(categoryTitle);
-
+    
         const subcategoryContainer = document.createElement("div");
         subcategoryContainer.classList.add("pl-4");
-
+    
         category.subcategories.forEach((sub) => {
           const subDiv = document.createElement("div");
           subDiv.classList.add(
+            "flex",
+            "items-center",
+            "justify-between",
             "py-2",
             "border-b",
             "border-gray-200",
-            "cursor-pointer",
             "hover:bg-gray-100"
           );
-          subDiv.textContent = sub.name;
+    
+          // Subcategory Name
+          const subName = document.createElement("span");
+          subName.textContent = sub.name;
+    
+          // Details Button
+          const detailsButton = document.createElement("a");
+          detailsButton.href = `/subcategory/${sub.id}?role=${userRole}`;
+          detailsButton.classList.add(
+            "bg-blue-500",
+            "text-white",
+            "px-4",
+            "py-2",
+            "rounded",
+            "hover:bg-blue-600"
+          );
+          detailsButton.textContent = "Details";
+    
+          subDiv.appendChild(subName);
+          subDiv.appendChild(detailsButton);
           subcategoryContainer.appendChild(subDiv);
         });
-
+    
         categoryDiv.appendChild(subcategoryContainer);
         subcategoryList.appendChild(categoryDiv);
       }
     }
+    
 
     // Handle Search
     searchButton.addEventListener("click", function () {

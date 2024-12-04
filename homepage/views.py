@@ -9,6 +9,7 @@ from django.http import JsonResponse
 
 def homepage(request):
     try:
+        user_role = request.user.role if hasattr(request.user, 'role') else 'guest'
         connection = get_db_connection()
         cursor = connection.cursor()
 
@@ -42,7 +43,7 @@ def homepage(request):
                     {"id": subcategory_id, "name": subcategory_name}
                 )
 
-        return render(request, "homepage.html", {"categories": categories})
+        return render(request, "homepage.html", {"categories": categories, "user_role": user_role})
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
     finally:
@@ -212,14 +213,16 @@ def get_categories_and_subcategories(request):
         cursor = connection.cursor()
 
         # Fetch categories and subcategories
-        cursor.execute("""
+        cursor.execute(
+            """
 SELECT kj.Id AS category_id, kj.NamaKategori AS category_name, 
        sj.Id AS subcategory_id, sj.NamaSubkategori AS subcategory_name
 FROM KATEGORI_JASA kj
 LEFT JOIN SUBKATEGORI_JASA sj ON kj.Id = sj.KategoriJasaId
 ORDER BY kj.Id, sj.Id;
 
-        """)
+        """
+        )
         data = cursor.fetchall()
 
         # Format the response
@@ -228,23 +231,116 @@ ORDER BY kj.Id, sj.Id;
             str_category_id = str(category_id)  # Convert UUID to string
             if str_category_id not in categories:
                 categories[str_category_id] = {
-                    'name': category_name,
-                    'subcategories': []
+                    "name": category_name,
+                    "subcategories": [],
                 }
             if subcategory_id:
-                categories[str_category_id]['subcategories'].append({
-                    'id': str(subcategory_id),  # Convert UUID to string
-                    'name': subcategory_name
-                })
+                categories[str_category_id]["subcategories"].append(
+                    {
+                        "id": str(subcategory_id),  # Convert UUID to string
+                        "name": subcategory_name,
+                    }
+                )
 
-        return JsonResponse({'categories': categories}, status=200)
+        return JsonResponse({"categories": categories}, status=200)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({"error": str(e)}, status=500)
     finally:
         cursor.close()
         connection.close()
+
 
 def order(request):
     return render(
         request, "order.html"
     )  # Change path if you use project-level templates
+
+import logging
+logger = logging.getLogger(__name__)
+
+def subcategory_detail(request, subcategory_id):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        user_id = request.user.id  # Ensure user is authenticated
+        if not user_id:
+            raise ValueError("User is not authenticated")
+
+        # Determine the user's role
+        cursor.execute("SELECT 1 FROM PEKERJA WHERE id = %s", [user_id])
+        is_worker = cursor.fetchone()
+
+        cursor.execute("SELECT 1 FROM PELANGGAN WHERE id = %s", [user_id])
+        is_customer = cursor.fetchone()
+
+        if is_worker:
+            role = "pekerja"
+        elif is_customer:
+            role = "pengguna"
+        else:
+            role = "guest"
+
+        # Fetch subcategory info
+        cursor.execute("""
+            SELECT sj.Id, sj.NamaSubkategori, sj.Deskripsi, kj.NamaKategori
+            FROM SUBKATEGORI_JASA sj
+            LEFT JOIN KATEGORI_JASA kj ON sj.KategoriJasaId = kj.Id
+            WHERE sj.Id = %s
+        """, [subcategory_id])
+        subcategory = cursor.fetchone()
+        if not subcategory:
+            raise ValueError("Subcategory not found")
+
+        # Fetch service sessions
+        cursor.execute("""
+            SELECT Sesi, Harga
+            FROM SESI_LAYANAN
+            WHERE SubkategoriId = %s
+        """, [subcategory_id])
+        sessions = cursor.fetchall()
+
+        # Fetch workers
+        cursor.execute("SELECT NamaBank, Rating FROM PEKERJA")
+        workers = cursor.fetchall()
+
+        # Fetch testimonials
+        cursor.execute("""
+            SELECT NamaPengguna, Tgl, Teks, NamaPekerja, Rating
+            FROM TESTIMONI
+            LEFT JOIN TR_PEMESANAN_JASA ON TESTIMONI.IdTrPemesanan = TR_PEMESANAN_JASA.Id
+            LEFT JOIN PEKERJA ON TR_PEMESANAN_JASA.IdPekerja = PEKERJA.Id
+        """)
+        testimonials = cursor.fetchall()
+
+        # Prepare context
+        context = {
+            'role': role,
+            'subcategory': {
+                'name': subcategory[1],
+                'description': subcategory[2],
+                'category': subcategory[3],
+            },
+            'sessions': [{'name': session[0], 'price': session[1]} for session in sessions],
+            'workers': [{'name': worker[0], 'rating': worker[1]} for worker in workers],
+            'testimonials': [
+                {
+                    'user': testimonial[0],
+                    'date': testimonial[1],
+                    'text': testimonial[2],
+                    'worker': testimonial[3],
+                    'rating': testimonial[4],
+                }
+                for testimonial in testimonials
+            ],
+        }
+
+        return render(request, 'subcategory_combined.html', context)
+
+    except Exception as e:
+        print(f"Error in subcategory_detail: {e}")  # Log error details
+        return render(request, '500.html', {'error': str(e)}, status=500)
+    finally:
+        cursor.close()
+        connection.close()
+

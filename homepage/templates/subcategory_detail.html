@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+    <div class="bg-white shadow-md rounded p-6">
+
+        <!-- Subcategory Info -->
+        <div class="flex justify-between mb-4">
+            <div>
+                <p class="text-lg font-bold">Nama Subkategori: {{ subcategory.name }}</p>
+            </div>
+            <div>
+                <p class="text-lg">Kategori: {{ subcategory.category }}</p>
+            </div>
+        </div>
+        <div class="mb-6">
+            <p class="border border-gray-300 p-4 rounded">Deskripsi: {{ subcategory.description }}</p>
+        </div>
+
+        <!-- Service Sessions -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Pilihan Sesi Layanan</h2>
+            {% for session in sessions %}
+            <div class="flex justify-between items-center border-b border-gray-200 py-2">
+                <span>Sesi Layanan: {{ session.name }}</span>
+                <span>Harga: Rp {{ session.price }}</span>
+                {% if role == "pengguna" %}
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Pesan</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Workers -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Pekerja</h2>
+            <div class="flex flex-wrap gap-4">
+                {% for worker in workers %}
+                <div class="border border-gray-300 p-4 rounded cursor-pointer hover:bg-gray-100">
+                    {{ worker.name }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold mb-2">Testimoni</h2>
+            {% for testimonial in testimonials %}
+            <div class="border-b border-gray-200 py-4">
+                <div class="flex justify-between">
+                    <span>Nama Pengguna: {{ testimonial.user }}</span>
+                    <span>Tanggal: {{ testimonial.date }}</span>
+                </div>
+                <div class="mt-2">{{ testimonial.text }}</div>
+                <div class="mt-2">
+                    Nama Pekerja: {{ testimonial.worker }} | Rating: {{ testimonial.rating }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
