@@ -1,8 +1,9 @@
 *GUIDE CONNECT DATABESE PSQL LOCAL*
 
-# pertama nyalain virtual env dulu
+# pertama nyalain virtual env dulu dan install requirements
 jalankan di terminal
-***env\scripts\activate**
+**env\scripts\activate**
+**pip install -r requirements.txt**
 
 # kedua bikin file bernama .env
 dan isikan dalamnya sesuai di png contoh_env

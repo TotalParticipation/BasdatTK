@@ -16,11 +16,11 @@
             </button>
         </div>
 
-        <form id="testimonyForm" method="POST" onsubmit="return createTestimony()">
+        <form id="testimonyForm" method="POST">
             <div class="flex flex-col gap-y-4">
                 <div>
                     <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span> <span id="ratingEmoji">😍</span></label>
-                    <input type="range" name="rating" id="rating" min="1" max="5" step="0.5" value="5" 
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="1" value="5" 
                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" 
                            oninput="updateRatingWithEmoji(this.value)">
                 </div>
@@ -53,6 +53,7 @@
     }   
 
     function openTestimonyModal(subkategoriId) {
+        document.getElementById('testimonyForm').reset();
         document.getElementById('crdModalTestimoni').classList.remove('hidden');
         document.getElementById('crdModalTestimoni').classList.add('flex');
 
@@ -63,14 +64,15 @@
     function closeTestimoniModal() {
         document.getElementById('crdModalTestimoni').classList.add('hidden');
         document.getElementById('crdModalTestimoni').classList.remove('flex');
-        document.getElementById('testimonyForm').reset();
+        // document.getElementById('testimonyForm').reset();
     }    
 
     function createTestimony() {
         const form = document.querySelector("#testimonyForm");
+        
         const subkategoriId = form.dataset.subkategoriId;
 
-        fetch(`/no8910/create-testimony/${subkategoriId}`, {
+        fetch(`/no8910/create-testimony/294da385-9abc-4039-b413-8994b0ca1e2b/`, {
             method: "POST",
             body: new FormData(form),
             
@@ -87,12 +89,12 @@
         .then(data => {
             console.log("Akhir");
             closeTestimoniModal();
-            window.location.reload();
+            // window.location.reload();
         })
         .catch(err => console.log("ERROR"));
 
-        form.reset();
-        window.location.reload();
+        //form.reset();
+        //window.location.reload();
         return false;
     }
     document.querySelector("#testimonyForm").addEventListener("submit", (e) => {
@@ -107,15 +109,15 @@
     let emoji = '';
     
     if (rating <= 1.5) {
-        emoji = '😔'; // Very disappointed
+        emoji = '😔'; 
     } else if (rating <= 2.5) {
         emoji = '🙁'; // Sad
     } else if (rating <= 3.5) {
-        emoji = '😐'; // Neutral
+        emoji = '😐'; 
     } else if (rating <= 4.5) {
-        emoji = '🙂'; // Happy
+        emoji = '🙂'; 
     } else {
-        emoji = '😄'; // Very happy
+        emoji = '😄'; 
     }
     
     document.getElementById('ratingEmoji').textContent = emoji;

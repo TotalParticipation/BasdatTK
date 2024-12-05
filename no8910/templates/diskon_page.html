@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
-{% block content %}
 
+{% block content %}
+{% include "navbar_pelanggan.html" %}
 
 <div class="w-full max-w-7xl mx-auto px-4 md:px-8">
     <div class="main-data p-8 sm:p-14 bg-gray-50 rounded-3xl">
@@ -178,10 +179,9 @@
                         <h4 class="text-sm max-sm:text-base font-bold text-lg">{{ data.3 }}</h4>
                     </div>
                 </div>
-
             </div>
-
         </div>
+    </div>
     </div>
     <!-- Modal footer -->
     <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center">
@@ -213,6 +213,7 @@
                 </div>
 
             </div>
+        </div>
         </div>
         <!-- Modal footer -->
         <div class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 p-6 border-t border-gray-200 rounded-b justify-center">
@@ -287,7 +288,9 @@
             if (response.ok) {
                 return response.json(); 
             } else {
-                throw new Error('Transaction failed.');
+                return response.json().then(data => { // Ambil data dari respons untuk mendapatkan pesan
+                    throw new Error(data.message || 'Transaction failed.'); // Menggunakan pesan dari server
+                });
             }
         })
         .then(data => {      
@@ -296,10 +299,8 @@
             showModalSuksesBeliVoucher(voucherId); // Show success modal
         })
         .catch(error => {
-            console.error("Gagal beli voucher:", error);
-            hideModalBeliVoucher(); 
-            showModalGagalBeliVoucher(); 
-            
+            console.error("Gagal beli voucher, ga cukup saldo:", error);
+            showModalGagalBeliVoucher();  
         });
 
     form.reset(); 
@@ -351,28 +352,22 @@
     document.getElementById("closeButtonSuksesBeliVoucher").addEventListener("click", hideModalSuksesBeliVoucher);
 
 
-    
-    const modalGagalBeliVoucher = document.getElementById('modalGagalBeliVoucher');
-    const modalContentGagalBeliVoucher = document.getElementById('modalContentGagalBeliVoucher');
-
-    function showModalGagalBeliVoucher(voucherId) {
+    function showModalGagalBeliVoucher() {
         //hideModalBeliVoucher();
         const modalGagalBeliVoucher = document.getElementById('modalGagalBeliVoucher');
         const modalContentGagalBeliVoucher = document.getElementById('modalContentGagalBeliVoucher');
         
-        console.log(voucherId)
-
-    
+        //console.log(voucherId)
             
         document.querySelector("#modalGagalBeliVoucher .text-gray-800").innerText = "Maaf, saldo Anda tidak cukup untuk membeli voucher ini.";
 
         modalGagalBeliVoucher.classList.remove('hidden'); 
+        //modalGagalBeliVoucher.setAttribute('inert', '');
         setTimeout(() => {
             modalContentGagalBeliVoucher.classList.remove('opacity-0', 'scale-95');
             modalContentGagalBeliVoucher.classList.add('opacity-100', 'scale-100');
-        }, 50); 
-            
-
+        }, 50);  
+        
         
     }
 
@@ -385,10 +380,11 @@
 
         setTimeout(() => {
             modalGagalBeliVoucher.classList.add('hidden');
+            modalBeliVoucher.classList.add('hidden');
         }, 150); 
     }
 
-    document.getElementById("closeButtonSuksesBeliVoucher").addEventListener("click", hideModalGagalBeliVoucher);
+    document.getElementById("closeButtonGagalBeliVoucher").addEventListener("click", hideModalGagalBeliVoucher);
     
     
 

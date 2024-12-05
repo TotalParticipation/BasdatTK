@@ -25,7 +25,12 @@ def show_halaman_diskon(request):
     cursor.execute("SELECT * FROM METODE_BAYAR")
     list_metode_bayar = cursor.fetchall()
 
+    user_id = request.session.get('user_id')
+    cursor.execute("SELECT * FROM public.user WHERE id = %s", [user_id])
+    user = cursor.fetchone()
+
     context = {
+        'nama': user[1],
         'vouchers': vouchers,
         'all_promo': all_promo,
         'list_metode_bayar': list_metode_bayar
@@ -47,14 +52,40 @@ def beli_voucher(request, kode_voucher):
         voucher = cursor.fetchone()
 
         tr_pembelian_voucher_id = uuid.uuid4()
-        print("user id: " + request.session['user_id'])
-        user_id = request.session['user_id']
-        # print("id user: " + user_id)
+        # print("user id: " + request.session['user_id'])
+        
+        user_id = request.session.get('user_id')
+        print(user_id)
+        
 
         
-        
         id_metode_pembayaran = request.POST.get('metodePembayaran')
-        # perbaiki id metode bayar tidak terambil
+
+        cursor.execute("SELECT * FROM metode_bayar where id = %s", [id_metode_pembayaran])
+
+        metode_bayar = cursor.fetchone()
+        
+        if(metode_bayar[1] == "MyPay"):
+            try:
+                cursor.execute("SELECT * FROM public.user where id = %s", [user_id])
+                user = cursor.fetchone()
+                # print(user)
+                saldo_user = user[7]
+                
+                harga_voucher = voucher[3]
+
+                if(saldo_user >= harga_voucher):
+                    cursor.execute("UPDATE public.user SET saldomypay=saldomypay - %d WHERE id=%s", [harga_voucher, user_id])
+                    
+                    
+                else:
+                    cursor.close()
+                    print("saldo ga cukup")
+                    return JsonResponse({"status": "FAILED", "message": "Saldo tidak cukup."}, status=400)
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({"status": "FAILED", "message": "Terjadi kesalahan server."}, status=500)
+
         # print("id metode: " + id_metode_pembayaran)
         id_voucher = voucher[0]
         tgl_awal = datetime.now().date()
@@ -121,6 +152,7 @@ def create_testimony(request, id_tr_pemesanan_jasa):
         tr_pemesanan_jasa_id = tr_pemesanan_jasa[0]
         tanggal_buat_testimoni = datetime.now().date()
         testimony_text = request.POST.get('testimony_text')
+        
         rating = request.POST.get('rating')
 
         cursor.execute("""
@@ -131,7 +163,7 @@ def create_testimony(request, id_tr_pemesanan_jasa):
         connection.commit()
 
     cursor.close()
-    return JsonResponse({"status": "CREATED", "message": "Berhasil buat testimoni."}, status=201) 
+    return JsonResponse({"status": "CREATED", "message": "Berhasil buat testimoni."}, status=201)
 
 
 def printTables():
