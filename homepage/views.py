@@ -1,7 +1,8 @@
 # views.py
 import psycopg2
+import uuid
 from utils.db_utils import get_db_connection
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 
 # from .models import Subcategory, ServiceSession, Worker, Testimonial
@@ -9,7 +10,7 @@ from django.http import JsonResponse
 
 def homepage(request):
     try:
-        user_role = request.user.role if hasattr(request.user, 'role') else 'guest'
+        user_role = request.user.role if hasattr(request.user, "role") else "guest"
         connection = get_db_connection()
         cursor = connection.cursor()
 
@@ -43,7 +44,9 @@ def homepage(request):
                     {"id": subcategory_id, "name": subcategory_name}
                 )
 
-        return render(request, "homepage.html", {"categories": categories, "user_role": user_role})
+        return render(
+            request, "homepage.html", {"categories": categories, "user_role": user_role}
+        )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
     finally:
@@ -255,24 +258,27 @@ def order(request):
         request, "order.html"
     )  # Change path if you use project-level templates
 
-import logging
-logger = logging.getLogger(__name__)
 
 def subcategory_detail(request, subcategory_id):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        user_id = request.user.id  # Ensure user is authenticated
+        # Retrieve user ID from session
+        user_id = request.session.get("user_id")  # Ensure this key is set during login
+        print(f"User ID from session: {user_id}")
         if not user_id:
-            raise ValueError("User is not authenticated")
+            print("User not logged in. Redirecting to login.")
+            return redirect("login")  # Redirect to login if user_id is not found
 
         # Determine the user's role
-        cursor.execute("SELECT 1 FROM PEKERJA WHERE id = %s", [user_id])
+        cursor.execute("SELECT 1 FROM pekerja WHERE id = %s", [user_id])
         is_worker = cursor.fetchone()
+        print(f"Is Worker: {is_worker}")
 
-        cursor.execute("SELECT 1 FROM PELANGGAN WHERE id = %s", [user_id])
+        cursor.execute("SELECT 1 FROM pelanggan WHERE id = %s", [user_id])
         is_customer = cursor.fetchone()
+        print(f"Is Customer: {is_customer}")
 
         if is_worker:
             role = "pekerja"
@@ -280,6 +286,7 @@ def subcategory_detail(request, subcategory_id):
             role = "pengguna"
         else:
             role = "guest"
+        print(f"Determined Role: {role}")
 
         # Fetch subcategory info
         cursor.execute("""
@@ -301,46 +308,44 @@ def subcategory_detail(request, subcategory_id):
         sessions = cursor.fetchall()
 
         # Fetch workers
-        cursor.execute("SELECT NamaBank, Rating FROM PEKERJA")
+        cursor.execute("SELECT NamaBank, Rating FROM pekerja")
         workers = cursor.fetchall()
 
         # Fetch testimonials
         cursor.execute("""
-            SELECT NamaPengguna, Tgl, Teks, NamaPekerja, Rating
-            FROM TESTIMONI
-            LEFT JOIN TR_PEMESANAN_JASA ON TESTIMONI.IdTrPemesanan = TR_PEMESANAN_JASA.Id
-            LEFT JOIN PEKERJA ON TR_PEMESANAN_JASA.IdPekerja = PEKERJA.Id
+            SELECT T.tgl, T.teks, P.NamaBank AS NamaPekerja, T.rating
+            FROM TESTIMONI T
+            LEFT JOIN TR_PEMESANAN_JASA TPJ ON T.idtrpemesananan = TPJ.Id
+            LEFT JOIN PEKERJA P ON TPJ.IdPekerja = P.Id
         """)
         testimonials = cursor.fetchall()
 
         # Prepare context
         context = {
-            'role': role,
-            'subcategory': {
-                'name': subcategory[1],
-                'description': subcategory[2],
-                'category': subcategory[3],
+            "role": role,
+            "subcategory": {
+                "name": subcategory[1],
+                "description": subcategory[2],
+                "category": subcategory[3],
             },
-            'sessions': [{'name': session[0], 'price': session[1]} for session in sessions],
-            'workers': [{'name': worker[0], 'rating': worker[1]} for worker in workers],
-            'testimonials': [
+            "sessions": [{"name": session[0], "price": session[1]} for session in sessions],
+            "workers": [{"name": worker[0], "rating": worker[1]} for worker in workers],
+            "testimonials": [
                 {
-                    'user': testimonial[0],
-                    'date': testimonial[1],
-                    'text': testimonial[2],
-                    'worker': testimonial[3],
-                    'rating': testimonial[4],
+                    "date": testimonial[0],
+                    "text": testimonial[1],
+                    "worker": testimonial[2],
+                    "rating": testimonial[3],
                 }
                 for testimonial in testimonials
             ],
         }
 
-        return render(request, 'subcategory_combined.html', context)
+        return render(request, "subcategory_detail.html", context)
 
     except Exception as e:
-        print(f"Error in subcategory_detail: {e}")  # Log error details
-        return render(request, '500.html', {'error': str(e)}, status=500)
+        print(f"Error in subcategory_detail: {e}")
+        return render(request, "500.html", {"error": str(e)}, status=500)
     finally:
         cursor.close()
         connection.close()
-
