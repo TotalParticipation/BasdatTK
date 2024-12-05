@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Pengguna dan Update Profil</title>
 </head>
-{% include "navbar_pelanggan.html" %}
+{% include "navbar_pekerja.html" %}
 <body>
    
-    <h2>Pengguna:</h2>
+    <h2>Pekerja:</h2>
 
     <!-- User Profile Section -->
     <div style="display: flex;">
         <div style="display: flex;">
             <div style="border: 1px solid black; padding: 10px; margin-right: 20px;">
                 <p>Nama: {{nama}}</p>
-                <p>Level: {{level}}</p>
                 <p>Jenis Kelamin: {{jeniskelamin}}</p>
                 <p>NoHP: {{nohp}}</p>
                 <p>Tanggal Lahir: {{tgllahir}}</p>
