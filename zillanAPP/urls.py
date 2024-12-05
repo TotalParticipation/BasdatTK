@@ -9,4 +9,5 @@ urlpatterns = [
     path('profile-pekerja', views.view_profile_pekerja,name='profile_pekerja'), 
     path('register-pekerja', views.view_register_pekerja,name='register_pekerja'), 
     path('logout/', views.logout_view, name='logout'),
+    path('profile/<str:nohp>/', views.view_profile_pekerja2, name='view_profile'),
 ]

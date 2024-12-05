@@ -90,7 +90,6 @@ def login_view(request):
 
     return render(request, "login.html")
 
-
 def view_profile_pelanggan(request):
     connection = get_db_connection()
     # Check if the user is logged in (assuming you are storing user ID in the session)
@@ -160,7 +159,6 @@ def view_profile_pelanggan(request):
                     return render(request, "profile_pelanggan.html", {'error': error_message})
                 
         return render(request, "profile_pelanggan.html", context)
-
 
 def view_profile_pekerja(request):
     connection = get_db_connection()
@@ -269,7 +267,6 @@ def logout_view(request):
     logout(request)  # Logs out the user
     return redirect('login')  # Redirect to the login page (or any other page)
 
-
 def view_register_pekerja(request):
     connection = get_db_connection()
     if request.method == 'POST':
@@ -325,7 +322,6 @@ def view_register_pekerja(request):
                     return redirect("register_pekerja")
     return render(request, "register_pekerja.html")
 
-
 def view_register_pelanggan(request):
     connection = get_db_connection()
     if request.method == 'POST':
@@ -375,6 +371,41 @@ def view_register_pelanggan(request):
                     return redirect("register_pelanggan")
     return render(request, "register_pelanggan.html")
 
+def view_profile_pekerja2(request, nohp):
+    connection = get_db_connection()
+    try:
+        # Use raw SQL to query the user and their profile (based on your structure)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT "user".id, "user".nama, "user".jeniskelamin, "user".tgllahir, "user".alamat,
+                       pekerja.namabank, pekerja.nomorrekening, pekerja.npwp, pekerja.linkfoto
+                FROM "user"
+                LEFT JOIN pekerja ON "user".id = pekerja.id
+                WHERE "user".nohp = %s
+            """, [nohp])
+            user_profile = cursor.fetchone()
+        
+        if user_profile is None:
+            return render(request, '404.html', {'message': 'User not found'})
+
+        # Prepare the context to pass to the template
+        context = {
+            'id': user_profile[0],
+            'nama': user_profile[1],
+            'jeniskelamin': user_profile[2],
+            'tgllahir': user_profile[3],
+            'alamat': user_profile[4],
+            'namabank': user_profile[5],
+            'nomorrekening': user_profile[6],
+            'npwp': user_profile[7],
+            'linkfoto': user_profile[8],
+        }
+
+        return render(request, 'profile_pekerja_viewonly.html', context)
+
+    except Exception as e:
+        # Handle any errors and show an appropriate error page
+        return render(request, 'error.html', {'error': str(e)})
 # Call the function
 
 

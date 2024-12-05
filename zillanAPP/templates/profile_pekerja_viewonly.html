@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Pengguna dan Update Profil</title>
+</head>
+{% include "navbar_pelanggan.html" %}
+<body>
+   
+    <h2>Pengguna:</h2>
+
+    <!-- User Profile Section -->
+    <div style="display: flex;">
+        <div style="display: flex;">
+            <div style="border: 1px solid black; padding: 10px; margin-right: 20px;">
+                <p>Nama: {{nama}}</p>
+                <p>Level: {{level}}</p>
+                <p>Jenis Kelamin: {{jeniskelamin}}</p>
+                <p>NoHP: {{nohp}}</p>
+                <p>Tanggal Lahir: {{tgllahir}}</p>
+                <p>Alamat: {{alamat}}</p>
+                <p>Saldo MyPay: {{saldomypay}}</p>
+                <p>Nama Bank: {{namabank}}</p>
+                <p>No Rekening: {{noRekening}}</p>
+                <p>NPWP: {{npwp}}</p>
+                <p>Rating: {{rating}}</p>
+                <p>Jumlah Pesanan Selesai:{{jmlpsnananselesai}} </p>
+                <p>Kategori Pekerjaan:</p>
+                <ul>
+                    {% for kategori in categories %}
+                    <li>{{ kategori }}</li>
+                {% empty %}
+                    <li>Tidak ada kategori pekerjaan yang tersedia.</li>
+                {% endfor %}
+                </ul>
+            </div> 
+        </div>
+    </div>
