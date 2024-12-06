@@ -128,6 +128,10 @@ def tes_testimoni(request):
 
     return render(request, "tes_testimoni.html")
 
+def tes(request):
+
+    return render(request, "tes.html")
+
 
 def show_subkategori_page(request, id):
     subkategori = Subkategori.objects.get(pk=id)

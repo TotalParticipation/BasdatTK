@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<button onclick="openTestimonyModal('{{ transaksi.subkategori.id }}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 cursor-pointer">
-    Buat Testimoni
-</button>
+
 
 <div id="crdModalTestimoni" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
@@ -52,13 +50,13 @@
         document.getElementById('ratingnumber').textContent = parseFloat(value).toFixed(1);
     }   
 
-    function openTestimonyModal(subkategoriId) {
+    function openTestimonyModal(id_transaksi_pemesanan) {
         document.getElementById('testimonyForm').reset();
         document.getElementById('crdModalTestimoni').classList.remove('hidden');
         document.getElementById('crdModalTestimoni').classList.add('flex');
 
         const form = document.getElementById("testimonyForm");
-        form.dataset.subkategoriId = subkategoriId;
+        form.dataset.id_transaksi_pemesanan = id_transaksi_pemesanan;
     }
 
     function closeTestimoniModal() {
@@ -70,9 +68,9 @@
     function createTestimony() {
         const form = document.querySelector("#testimonyForm");
         
-        const subkategoriId = form.dataset.subkategoriId;
+        const id_transaksi_pemesanan = form.dataset.id_transaksi_pemesanan;
 
-        fetch(`/no8910/create-testimony/294da385-9abc-4039-b413-8994b0ca1e2b/`, {
+        fetch(`/no8910/create-testimony/${id_transaksi_pemesanan}/`, {
             method: "POST",
             body: new FormData(form),
             
