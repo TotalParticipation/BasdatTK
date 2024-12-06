@@ -17,7 +17,7 @@ dan isikan dalamnya sesuai di png contoh_env
     DEBUG=True
     TEST_VAR=HelloWorld
 ```
-
+*yang harus diganti itu cuma DB_NAME,DB_USER(kalo nama lu ga default),DB_PASSWORD. sisanya biarin*
 sesuaikan ama Nama DB lu, kalo gw pilih db dengan nama tugas kelompok1(pake db yg dari tugas kemaren yg udh lengkap)
 user postgres gw juga default jadinya postgres 
 password gw passwordxxx (password yg sama buat masuk terminal)
@@ -110,3 +110,6 @@ Quit the server with CTRL-BREAK.
 
 kalau sudah seperti ini maka lu sudah successfully konek ke database 
 sisanya belajar sendiri
+
+
+*by yours truly, Zillan*
