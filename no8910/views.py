@@ -126,16 +126,9 @@ def get_voucher_data_to_buy(request, kode_voucher):
 
 
 def tes(request):
-
     return render(request, "tes.html")
 
 
-def show_subkategori_page(request, id):
-    subkategori = Subkategori.objects.get(pk=id)
-
-    context = {'subkategori': subkategori}
-
-    return render(request, 'subkategori_page.html', context)
 
 @csrf_exempt
 def create_testimony(request, id_tr_pemesanan_jasa):

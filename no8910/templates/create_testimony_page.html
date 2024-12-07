@@ -106,13 +106,13 @@
     const rating = parseFloat(value);
     let emoji = '';
     
-    if (rating <= 1.5) {
+    if (rating == 1.5) {
         emoji = '😔'; 
-    } else if (rating <= 2.5) {
-        emoji = '🙁'; // Sad
-    } else if (rating <= 3.5) {
+    } else if (rating == 2) {
+        emoji = '🙁'; //
+    } else if (rating == 3) {
         emoji = '😐'; 
-    } else if (rating <= 4.5) {
+    } else if (rating == 4) {
         emoji = '🙂'; 
     } else {
         emoji = '😄'; 
