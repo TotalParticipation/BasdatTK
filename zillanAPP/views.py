@@ -90,7 +90,6 @@ def login_view(request):
 
     return render(request, "login.html")
 
-
 def view_profile_pelanggan(request):
     connection = get_db_connection()
     # Check if the user is logged in (assuming you are storing user ID in the session)
@@ -160,7 +159,6 @@ def view_profile_pelanggan(request):
                     return render(request, "profile_pelanggan.html", {'error': error_message})
                 
         return render(request, "profile_pelanggan.html", context)
-
 
 def view_profile_pekerja(request):
     connection = get_db_connection()
@@ -269,7 +267,6 @@ def logout_view(request):
     logout(request)  # Logs out the user
     return redirect('login')  # Redirect to the login page (or any other page)
 
-
 def view_register_pekerja(request):
     connection = get_db_connection()
     if request.method == 'POST':
@@ -325,7 +322,6 @@ def view_register_pekerja(request):
                     return redirect("register_pekerja")
     return render(request, "register_pekerja.html")
 
-
 def view_register_pelanggan(request):
     connection = get_db_connection()
     if request.method == 'POST':
@@ -375,6 +371,57 @@ def view_register_pelanggan(request):
                     return redirect("register_pelanggan")
     return render(request, "register_pelanggan.html")
 
+def view_profile_pekerja2(request, nohp):
+    connection = get_db_connection()
+    try:
+        # Use raw SQL to query the user and their profile (based on your structure)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT u.id, nama, jeniskelamin, nohp, tgllahir, alamat, saldomypay, p.namabank, p.nomorrekening, p.npwp, p.linkfoto, p.rating, p.jmlpsnananselesai
+                FROM "user" u
+                LEFT JOIN pekerja p ON u.id = p.id
+                WHERE u.nohp = %s
+            """, [nohp])
+            pekerja = cursor.fetchone()
+
+        with connection.cursor() as cursor:
+
+            cursor.execute( """
+                SELECT kj.namakategori
+                FROM kategori_jasa kj
+                JOIN pekerja_kategori_jasa pkj ON kj.id = pkj.kategorijasaid
+                WHERE pkj.pekerjaid = %s;
+            """, [pekerja[0]])
+            categories = [row[0] for row in cursor.fetchall()] 
+        
+        
+        if pekerja is None:
+            return render(request, '404.html', {'message': 'User not found'})
+
+        # Prepare the context to pass to the template
+        context = {
+            'id': pekerja[0],
+            'nama': pekerja[1],
+            'jeniskelamin': pekerja[2],
+            'nohp': pekerja[3],
+            'tgllahir': pekerja[4],
+            'alamat': pekerja[5],
+            'saldomypay': pekerja[6],
+            'namabank' : pekerja[7],
+            'noRekening': pekerja[8],
+            'npwp': pekerja[9],
+            'linkfoto':pekerja[10],
+            'rating':pekerja[11],
+            'jmlpsnananselesai': pekerja[12],
+            'categories' : categories
+        }
+
+        return render(request, 'profile_pekerja_viewonly.html', context)
+
+    except Exception as e:
+        print(e)
+        # Handle any errors and show an appropriate error page
+        return render(request, 'error.html', {'error': str(e)})
 # Call the function
 
 

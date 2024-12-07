@@ -1,13 +1,17 @@
 from django.urls import path
+from django.shortcuts import redirect
+from . import views
+from django.urls import path
 from zillanAPP import views
 
 
 urlpatterns = [
+    path('', lambda request: redirect('login')),
     path('login', views.login_view,name='login'), # This maps the '/test/' URL to the test_view function
     path('profile-pelanggan', views.view_profile_pelanggan,name='profile_pelanggan'),
     path('register-pelanggan', views.view_register_pelanggan,name='register_pelanggan'), 
     path('profile-pekerja', views.view_profile_pekerja,name='profile_pekerja'), 
     path('register-pekerja', views.view_register_pekerja,name='register_pekerja'), 
     path('logout/', views.logout_view, name='logout'),
-    path('print_tables', views.printTables, name='printTables'),
+    path('profile/<str:nohp>/', views.view_profile_pekerja2, name='view_profile'),
 ]
