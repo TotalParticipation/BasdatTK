@@ -344,15 +344,14 @@ def fetch_orders(request):
 
 def change_status(request):
     if request.method == 'POST':  # Ensure only POST requests are handled
-        print("View reached!")  # Debugging
+        # print("View reached!")  # Debugging
 
         user_id = request.session.get('user_id')
         id_tpj = request.POST.get('id_tpj')  # Changed to POST
-        print("User ID:", user_id, "Order ID:", id_tpj)  # Debugging
+        # print("User ID:", user_id, "Order ID:", id_tpj)  # Debugging
 
         connection = get_db_connection()
         try:
-            print("HELLOHELLOHELLOHELLO123123123123123123123123")
             cursor = connection.cursor()
 
             cursor.execute("""
@@ -360,7 +359,6 @@ def change_status(request):
                 SET idpekerja = %s, tglpekerjaan = %s
                 WHERE tpj.id = %s;
             """, [user_id, datetime.now().strftime("%Y-%m-%d"), id_tpj])
-            print(f"Rows affected: {cursor.rowcount}")
 
             cursor.execute("""
                 UPDATE tr_pemesanan_status tps
@@ -380,5 +378,142 @@ def change_status(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
 def status_pekerjaan_dashboard(request):
-    return render(request, 'status_pekerjaan.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
 
+    categories = []
+    status = []
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT * FROM PEKERJA WHERE id = %s;""", [user_id])
+            pekerja = cursor.fetchone()
+            if not pekerja:
+                return redirect('login')
+
+            # Fetch categories
+            cursor.execute("""
+                SELECT DISTINCT kj.Id, kj.namakategori
+                FROM KATEGORI_JASA kj
+                JOIN PEKERJA_KATEGORI_JASA pkj ON pkj.KategoriJasaId = kj.id
+                WHERE pkj.pekerjaid = %s;
+            """, [user_id])
+            categories = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT id, status
+                FROM STATUS_PESANAN
+                WHERE status <> 'Mencari Pekerja Terdekat';
+            """, [user_id])
+            status = cursor.fetchall()
+
+    except Exception as e:
+        print(f"Database error: {e}")
+    finally:
+        connection.close()
+
+    print(categories)
+    print(status)
+    context = {
+        'categories': categories,
+        'status': status,
+    }
+
+    return render(request, 'status_pekerjaan.html', context)
+
+def fetch_status_order(request):
+    category_id = request.GET.get('category_id')
+    status_id = request.GET.get('status_id')
+    user_id = request.session.get('user_id')
+    orders = []
+    connection = get_db_connection()
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    SELECT tpj.id, u.nama, sj.namasubkategori, tpj.tglpemesanan, tpj.sesi, tpj.totalbiaya, sp.status
+                    FROM TR_PEMESANAN_JASA tpj
+                    JOIN SUBKATEGORI_JASA sj ON tpj.idkategorijasa = sj.id
+                    JOIN TR_PEMESANAN_STATUS tps ON tps.IdTrPemesanan = tpj.id
+                    JOIN STATUS_PESANAN sp ON sp.Id = tps.IdStatus
+                    JOIN "user" u ON u.id = tpj.idpelanggan
+                    WHERE tps.idstatus = %s AND sj.kategorijasaid = %s AND tpj.idpekerja = %s;
+                """, [status_id, category_id, user_id])
+            rows = cursor.fetchall()
+
+            # Format the results into a list of dictionaries
+            for row in rows:
+                order = {
+                    'id': row[0],
+                    'nama': row[1],
+                    'namasubkategori': row[2],
+                    'tglpemesanan': row[3],
+                    'sesi': row[4],
+                    'biaya': row[5],
+                    'status': row[6]
+                }
+                orders.append(order)
+    except Exception as e:
+        print(f"Error fetching subcategories: {e}")
+    finally:
+        connection.close()
+    
+    return JsonResponse({'orders': orders})
+
+from django.http import JsonResponse
+import json
+
+def update_status(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            order_id = data.get('order_id')
+            status_id = request.GET.get('status_id')
+            next_status = ''
+
+            connection = get_db_connection()
+            try:
+                with connection.cursor() as cursor:
+                    # Fetch the current status of the order
+                    cursor.execute("""
+                        SELECT sp.status
+                        FROM STATUS_PESANAN sp
+                        JOIN TR_PEMESANAN_STATUS ON tps.IdStatus = sp.id
+                        WHERE tps.IdTrPemesanan = %s;
+                    """, [order_id])
+                    result = cursor.fetchone()
+
+                    if result == 'Menunggu Pekerja Berangkat':
+                        next_status = 'Pekerja Tiba Di Lokasi'
+
+                    elif result == 'Pekerja Tiba Di Lokasi':
+                        next_status = 'Pelayanan Jasa Sedang Dilakukan'
+
+                    elif result == 'Pelayanan Jasa Sedang Dilakukan':
+                        next_status = 'Pesanan Selesai'
+
+                    cursor.execute("""
+                        SELECT sp.id
+                        FROM STATUS_PESANAN
+                        WHERE status = %s;
+                    """, [next_status])
+                    new_status_id = cursor.fetchone()
+
+                    # Update the order's status
+                    cursor.execute("""
+                        UPDATE TR_PEMESANAN_STATUS
+                        SET IdStatus = %s
+                        WHERE IdTrPemesanan = %s;
+                    """, [new_status_id, order_id])
+                    connection.commit()
+
+            finally:
+                connection.close()
+
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

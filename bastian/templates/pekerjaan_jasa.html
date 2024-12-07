@@ -7,40 +7,79 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            color: black;
             background-color: white;
+            color: black;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
-        .container {
-            width: 90%;
-            margin: 20px auto;
-        }
-
-        h2 {
-            text-align: center;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            border: 1px solid black;
+            border-radius: 8px;
             margin-bottom: 20px;
+        }
+
+        .header div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header p {
+            margin: 5px 0;
         }
 
         .filter-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 20px;
             margin-bottom: 20px;
+            background-color: white;
+            border: 1px solid black;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: black;
         }
 
         select, button {
+            width: 100%;
             padding: 10px;
+            margin: 10px 0;
             border: 1px solid black;
+            border-radius: 5px;
+            font-size: 16px;
             background-color: white;
+            color: black; /* Ensure text is black */
+        }
+
+        option {
+            color: black; /* Ensure dropdown options text is black */
+        }
+
+        button {
             cursor: pointer;
+        }
+
+        button:hover {
+            background-color: black;
+            color: white;
         }
 
         .order-card {
             border: 1px solid black;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 20px;
             margin-bottom: 15px;
+            background-color: white;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -79,16 +118,22 @@
 
         <!-- Filter Section -->
         <div class="filter-container">
-            <select id="category" onchange="updateSubcategories()">
-                <option value="">-- Pilih Kategori --</option>
-                {% for category in categories %}
+            <div>
+                <label for="category">Kategori Jasa:</label>
+                <select id="category" onchange="updateSubcategories()">
+                    <option value="">-- Pilih Kategori --</option>
+                    {% for category in categories %}
                     <option value="{{ category.0 }}">{{ category.1 }}</option>
-                {% endfor %}
-            </select>
+                    {% endfor %}
+                </select>
+            </div>
 
-            <select id="subcategory">
-                <option value="">-- Pilih Subkategori --</option>
-            </select>
+            <div>
+                <label for="subcategory">Subkategori Jasa:</label>
+                <select id="subcategory">
+                    <option value="">-- Pilih Subkategori --</option>
+                </select>
+            </div>
 
             <button onclick="filterOrders()">Search</button>
         </div>
@@ -104,7 +149,6 @@
                     <p><strong>Tanggal Pemesanan:</strong> {{ order.tglpemesanan }}</p>
                     <p><strong>Sesi:</strong> {{ order.sesi }}</p>
                 </div>
-                <!-- Onclick directly triggers the kerjakanPesanan function -->
                 <button class="action-button" value="{{ order.id }}" onclick="kerjakanPesanan(this)">Kerjakan Pesanan</button>
             </div>
             {% endfor %}
@@ -169,7 +213,6 @@
                 console.error('Order ID is missing');
                 return;
             }
-            console.log("Processing Order ID:", orderId); // Debugging line
 
             // Get the CSRF token from the hidden input field
             const csrfToken = document.getElementById('csrf_token').value;
@@ -185,7 +228,6 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Response:", data); // Debugging line
                 filterOrders(); // Re-fetch and update orders list after status change
             })
             .catch(error => console.error('Error changing status:', error));

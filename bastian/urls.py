@@ -10,4 +10,7 @@ urlpatterns = [
     path('fetch_subcategories/', views.fetch_subcategories, name='fetch_subcategories'),
     path('fetch_orders/', views.fetch_orders, name='fetch_orders'),
     path('change_status/', views.change_status, name='change_status'),
+    path('fetch_status_order/', views.fetch_status_order, name='fetch_status_order'),
+    path('update_status/', views.fetch_status_order, name='update_status'),
+
 ]
