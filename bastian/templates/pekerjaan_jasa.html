@@ -74,12 +74,16 @@
     <div class="container">
         <h2>Service Orders</h2>
 
+        <!-- CSRF Token -->
+        <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
         <!-- Filter Section -->
         <div class="filter-container">
             <select id="category" onchange="updateSubcategories()">
                 <option value="">-- Pilih Kategori --</option>
-                <option value="home_cleaning">Home Cleaning</option>
-                <option value="massage">Massage</option>
+                {% for category in categories %}
+                    <option value="{{ category.0 }}">{{ category.1 }}</option>
+                {% endfor %}
             </select>
 
             <select id="subcategory">
@@ -91,56 +95,100 @@
 
         <!-- Orders List -->
         <div id="orders-list">
-            <!-- Example Hardcoded Cards -->
+            {% for order in orders %}
             <div class="order-card">
                 <div class="order-details">
-                    <p><strong>Subkategori Pesanan:</strong> Daily Cleaning</p>
-                    <p><strong>Nama Pelanggan:</strong> Jane Doe</p>
-                    <p><strong>Total Biaya:</strong> Rp 100,000</p>
-                    <p><strong>Tanggal Pemesanan:</strong> 2024-11-16</p>
-                    <p><strong>Tanggal Pekerjaan:</strong> 2024-11-18</p>
+                    <p><strong>Subkategori Pesanan:</strong> {{ order.namasubkategori }}</p>
+                    <p><strong>Nama Pelanggan:</strong> {{ order.nama }}</p>
+                    <p><strong>Total Biaya:</strong> Rp {{ order.biaya }}</p>
+                    <p><strong>Tanggal Pemesanan:</strong> {{ order.tglpemesanan }}</p>
+                    <p><strong>Sesi:</strong> {{ order.sesi }}</p>
                 </div>
-                <button class="action-button">Kerjakan Pesanan</button>
+                <!-- Onclick directly triggers the kerjakanPesanan function -->
+                <button class="action-button" value="{{ order.id }}" onclick="kerjakanPesanan(this)">Kerjakan Pesanan</button>
             </div>
-
-            <div class="order-card">
-                <div class="order-details">
-                    <p><strong>Subkategori Pesanan:</strong> Setrika</p>
-                    <p><strong>Nama Pelanggan:</strong> John Smith</p>
-                    <p><strong>Total Biaya:</strong> Rp 75,000</p>
-                    <p><strong>Tanggal Pemesanan:</strong> 2024-11-15</p>
-                    <p><strong>Tanggal Pekerjaan:</strong> 2024-11-17</p>
-                </div>
-                <button class="action-button">Kerjakan Pesanan</button>
-            </div>
+            {% endfor %}
         </div>
     </div>
 
     <script>
-        // Dummy Subcategories Data
-        const subcategories = {
-            home_cleaning: ["Setrika", "Daily Cleaning", "Pembersihan Dapur"],
-            massage: ["Full Body Massage", "Foot Massage"]
-        };
-
+        // Update subcategories based on the selected category
         function updateSubcategories() {
             const category = document.getElementById("category").value;
             const subcategoryDropdown = document.getElementById("subcategory");
             subcategoryDropdown.innerHTML = '<option value="">-- Pilih Subkategori --</option>';
 
-            if (category && subcategories[category]) {
-                subcategories[category].forEach(sub => {
-                    const option = document.createElement("option");
-                    option.value = sub.toLowerCase().replace(" ", "_");
-                    option.textContent = sub;
-                    subcategoryDropdown.appendChild(option);
-                });
+            if (category) {
+                fetch(`/fetch_subcategories/?category_id=${category}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.subcategories.forEach(subcategory => {
+                            const option = document.createElement("option");
+                            option.value = subcategory[0];
+                            option.textContent = subcategory[1];
+                            subcategoryDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching subcategories:', error));
             }
         }
 
+        // Filter orders based on the selected category and subcategory
         function filterOrders() {
-            // Add filtering logic based on selected category and subcategory
-            alert("Filtering orders...");
+            const category = document.getElementById("category").value;
+            const subcategory = document.getElementById("subcategory").value;
+
+            fetch(`/fetch_orders/?subcategory_id=${subcategory}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ordersList = document.getElementById("orders-list");
+                    ordersList.innerHTML = "";
+                    data.orders.forEach(order => {
+                        const orderCard = document.createElement("div");
+                        orderCard.classList.add("order-card");
+                        orderCard.innerHTML = `
+                            <div class="order-details">
+                                <p><strong>Subkategori Pesanan:</strong> ${order.namasubkategori}</p>
+                                <p><strong>Nama Pelanggan:</strong> ${order.nama}</p>
+                                <p><strong>Total Biaya:</strong> Rp ${order.biaya}</p>
+                                <p><strong>Tanggal Pemesanan:</strong> ${order.tglpemesanan}</p>
+                                <p><strong>Sesi:</strong> ${order.sesi}</p>
+                            </div>
+                            <button class="action-button" value="${order.id}" onclick="kerjakanPesanan(this)">Kerjakan Pesanan</button>
+                        `;
+                        ordersList.appendChild(orderCard);
+                    });
+                })
+                .catch(error => console.error('Error fetching orders:', error));
+        }
+
+        // Function to mark the order as processed (Kerjakan Pesanan)
+        function kerjakanPesanan(buttonElement) {
+            const orderId = buttonElement.value; // Get the order ID from the value attribute
+            if (!orderId) {
+                console.error('Order ID is missing');
+                return;
+            }
+            console.log("Processing Order ID:", orderId); // Debugging line
+
+            // Get the CSRF token from the hidden input field
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            // Change the fetch method to POST and send data as URL-encoded
+            fetch(`/change_status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',  // Form data type
+                    'X-CSRFToken': csrfToken,  // Add the CSRF token here
+                },
+                body: `id_tpj=${orderId}`,  // Send data in the body of the POST request
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response:", data); // Debugging line
+                filterOrders(); // Re-fetch and update orders list after status change
+            })
+            .catch(error => console.error('Error changing status:', error));
         }
     </script>
 </body>

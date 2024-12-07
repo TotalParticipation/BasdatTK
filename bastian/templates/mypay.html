@@ -16,12 +16,24 @@
             margin-bottom: 20px;
         }
         .header div {
-            flex: 1;
+            text-align: left;
+        }
+        .header div:nth-child(1) {
+            flex: 2; /* Make No HP section wider */
+        }
+        .header div:nth-child(2) {
+            flex: 1; /* Saldo section */
+        }
+        .header div:nth-child(3) {
+            flex: 1; /* Transaction button section */
             text-align: center;
         }
         .transactions {
             border: 1px solid #000;
             padding: 10px;
+        }
+        .transactions h3 {
+            margin-top: 0;
         }
         .transaction-item {
             display: flex;
@@ -31,6 +43,19 @@
         }
         .transaction-item:last-child {
             border-bottom: none;
+        }
+        .transaction-item div {
+            flex: 1;
+            text-align: left;
+        }
+        .transaction-item div:nth-child(1) {
+            text-align: right; /* Align amount to the right */
+        }
+        .transaction-item div:nth-child(2) {
+            text-align: center; /* Center the date */
+        }
+        .transaction-item div:nth-child(3) {
+            text-align: left; /* Align description to the left */
         }
         button {
             padding: 5px 10px;

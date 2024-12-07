@@ -1,10 +1,12 @@
 # views.py
 from utils.db_utils import get_db_connection
-from .helpers import process_topup, process_service_payment, process_transfer, process_withdrawal
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from django.contrib import messages
 from .forms import TransactionForm
 from datetime import datetime
+import uuid
+from uuid import UUID
 
 def printTables():
     connection = get_db_connection()
@@ -47,7 +49,7 @@ def transaction_view(request):
                 user_role = "pelanggan"
                 # Fetch jasa options only for pelanggan
                 cursor.execute("""
-                               SELECT sj.namasubkategori, tpj.totalbiaya
+                               SELECT sj.namasubkategori, tpj.totalbiaya, tpj.id
                                FROM SUBKATEGORI_JASA sj
                                JOIN TR_PEMESANAN_JASA tpj ON sj.id = tpj.idkategorijasa
                                JOIN TR_PEMESANAN_STATUS tps ON tpj.id = tps.idtrpemesanan
@@ -90,14 +92,107 @@ def process_transaction(request):
             with connection.cursor() as cursor:
                 if state == 'topup':
                     # Process TopUp transaction
-                    nominal = float(request.POST.get('nominal', 0))
-                    cursor.execute("""
-                        UPDATE "user" 
-                        SET saldomypay = saldomypay + %s 
-                        WHERE id = %s;
-                    """, [nominal, user_id])
-                    messages.success(request, "TopUp berhasil ditambahkan!")
+                    nominal_list = request.POST.getlist('nominal')  # Use getlist to handle all values
 
+                    # Check if the list is non-empty and contains valid nominal
+                    if nominal_list and nominal_list[0].isdigit():  # Check if the first value is a valid number
+                        nominal = float(nominal_list[0])  # Convert the first value to float
+                        cursor.execute("""
+                            UPDATE "user" 
+                            SET saldomypay = saldomypay + %s 
+                            WHERE id = %s;
+                        """, [nominal, user_id])
+
+                        cursor.execute("""
+                            INSERT INTO TR_MYPAY (id, UserId, Tgl, Nominal, KategoriId) 
+                            VALUES (%s, %s, %s, %s, (SELECT id from KATEGORI_TR_MYPAY WHERE nama = 'topup'));
+                        """, [str(uuid.uuid4()), user_id, datetime.now().strftime("%Y-%m-%d"), nominal])
+                        messages.success(request, "TopUp berhasil ditambahkan!")
+                    else:
+                        messages.error(request, "Nominal TopUp tidak valid!")
+
+                elif state == 'service_payment':
+                    # Process service payment
+                    service_price = request.POST.get('service_price')  # Price of the service
+                    service_name = request.POST.get('service_name')  # Name of the service
+                    tr_pemesanan_jasa_id = request.POST.get('tpj_id')
+
+                    print(service_price, service_name)
+                    # Validate input
+                    if service_price and service_name:  
+                        service_price = float(service_price)
+
+                        # Deduct the service price from the user's balance
+                        cursor.execute("""
+                            UPDATE "user" 
+                            SET saldomypay = saldomypay - %s 
+                            WHERE id = %s AND saldomypay >= %s;
+                        """, [service_price, user_id, service_price])
+
+                        if cursor.rowcount == 0:  # No rows affected means insufficient balance
+                            messages.error(request, "Saldo tidak cukup untuk membayar jasa!")
+                        else:
+                            # Record the service payment
+                            cursor.execute("""
+                                INSERT INTO TR_MYPAY (id, UserId, Tgl, Nominal, KategoriId) 
+                                VALUES (%s, %s, %s, %s, (SELECT id from KATEGORI_TR_MYPAY WHERE nama = 'membayar jasa'));
+                            """, [str(uuid.uuid4()), user_id, datetime.now().strftime("%Y-%m-%d"), service_price])
+                            messages.success(request, "Pembayaran jasa berhasil dilakukan!")
+
+                            cursor.execute("""
+                                UPDATE TR_PEMESANAN_STATUS 
+                                SET IdStatus = (SELECT id from STATUS_PESANAN WHERE status = 'Pesanan Selesai')
+                                WHERE IdTrPemesanan = %s;
+                            """, [tr_pemesanan_jasa_id])
+                            messages.success(request, "Pembayaran jasa berhasil dilakukan!")
+                    else:
+                        messages.error(request, "Data pembayaran jasa tidak valid!")
+                
+                elif state == 'transfer':
+                    nohp_tujuan = request.POST.get('phone_number')
+                    nominal_list = request.POST.getlist('nominal')
+
+                    if nominal_list and nominal_list[1].isdigit() and nohp_tujuan:
+                        nominal = float(nominal_list[1])
+                        cursor.execute("""
+                            UPDATE "user" 
+                            SET saldomypay = saldomypay - %s 
+                            WHERE id = %s AND saldomypay >= %s;
+                        """, [nominal, user_id, nominal])
+
+                        if cursor.rowcount == 0:  # No rows affected means insufficient balance
+                            messages.error(request, "Saldo tidak cukup untuk transfer!")
+                        else:
+                            cursor.execute("""
+                            UPDATE "user" 
+                            SET saldomypay = saldomypay + %s 
+                            WHERE nohp = %s;
+                        """, [nominal, nohp_tujuan])
+                            
+                            cursor.execute("""
+                                INSERT INTO TR_MYPAY (id, UserId, Tgl, Nominal, KategoriId) 
+                                VALUES (%s, %s, %s, %s, (SELECT id from KATEGORI_TR_MYPAY WHERE nama = 'transfer'));
+                        """, [str(uuid.uuid4()), user_id, datetime.now().strftime("%Y-%m-%d"), nominal])
+                
+                elif state == 'withdrawal':
+                    nominal_list = request.POST.getlist('nominal')
+
+                    if nominal_list and nominal_list[2].isdigit():
+                        nominal = float(nominal_list[2])
+                        cursor.execute("""
+                            UPDATE "user" 
+                            SET saldomypay = saldomypay - %s 
+                            WHERE id = %s AND saldomypay >= %s;
+                        """, [nominal, user_id, nominal])
+
+                        if cursor.rowcount == 0:  # No rows affected means insufficient balance
+                            messages.error(request, "Saldo tidak cukup untuk Withdrawal!")
+                        else:                            
+                            cursor.execute("""
+                                INSERT INTO TR_MYPAY (id, UserId, Tgl, Nominal, KategoriId) 
+                                VALUES (%s, %s, %s, %s, (SELECT id from KATEGORI_TR_MYPAY WHERE nama = 'withdraw'));
+                        """, [str(uuid.uuid4()), user_id, datetime.now().strftime("%Y-%m-%d"), nominal])
+                            
             connection.commit()
         except Exception as e:
             print(f"Error processing transaction: {e}")
@@ -140,7 +235,7 @@ def mypay_dashboard(request):
                 FROM TR_MYPAY trmp
                 JOIN KATEGORI_TR_MYPAY ktrmp ON trmp.KategoriId = ktrmp.id
                 WHERE trmp.UserId = %s
-                ORDER BY trmp.tgl DESC;
+                ORDER BY trmp.tgl DESC, trmp.nominal;
             """, [user_id])
             transactions = cursor.fetchall()
     except Exception as e:
@@ -157,7 +252,132 @@ def mypay_dashboard(request):
     return render(request, 'mypay.html', context)
 
 def pekerjaan_dashboard(request):
-    return render(request, 'pekerjaan_jasa.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
+
+    connection = get_db_connection()
+    categories = []
+    try:
+        with connection.cursor() as cursor:
+            # Fetch pekerja details
+            cursor.execute("""SELECT * FROM PEKERJA WHERE id = %s;""", [user_id])
+            pekerja = cursor.fetchone()
+            if not pekerja:
+                return redirect('login')
+
+            # Fetch categories
+            cursor.execute("""
+                SELECT DISTINCT kj.Id, kj.namakategori
+                FROM KATEGORI_JASA kj
+                JOIN PEKERJA_KATEGORI_JASA pkj ON pkj.KategoriJasaId = kj.id
+                WHERE pkj.pekerjaid = %s;
+            """, [user_id])
+            categories = cursor.fetchall()
+
+    except Exception as e:
+        print(f"Database error: {e}")
+    finally:
+        connection.close()
+
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'pekerjaan_jasa.html', context)
+
+def fetch_subcategories(request):
+    category_id = request.GET.get('category_id')
+    subcategories = []
+    connection = get_db_connection()
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, namasubkategori 
+                FROM SUBKATEGORI_JASA 
+                WHERE KategoriJasaId = %s;
+            """, [category_id])
+            subcategories = cursor.fetchall()
+    except Exception as e:
+        print(f"Error fetching subcategories: {e}")
+    finally:
+        connection.close()
+    
+    return JsonResponse({'subcategories': subcategories})
+
+def fetch_orders(request):
+    subcategory_id = request.GET.get('subcategory_id')
+    orders = []
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            if subcategory_id:
+                cursor.execute("""
+                    SELECT tpj.id, u.nama, sj.namasubkategori, tpj.tglpemesanan, tpj.sesi, tpj.totalbiaya
+                    FROM TR_PEMESANAN_JASA tpj
+                    JOIN SUBKATEGORI_JASA sj ON tpj.idkategorijasa = sj.id
+                    JOIN TR_PEMESANAN_STATUS tps ON tps.IdTrPemesanan = tpj.id
+                    JOIN STATUS_PESANAN sp ON sp.Id = tps.IdStatus
+                    JOIN "user" u ON u.id = tpj.idpelanggan
+                    WHERE sp.status = 'Mencari Pekerja Terdekat' AND sj.id = %s
+                """, [subcategory_id])
+                rows = cursor.fetchall()
+
+                # Format the results into a list of dictionaries
+                for row in rows:
+                    order = {
+                        'id': row[0],
+                        'nama': row[1],
+                        'namasubkategori': row[2],
+                        'tglpemesanan': row[3],
+                        'sesi': row[4],
+                        'biaya': row[5]
+                    }
+                    orders.append(order)
+        print(orders)  # Make sure this prints correctly
+    except Exception as e:
+        print(f"Error fetching orders: {e}")
+    finally:
+        connection.close()
+
+    return JsonResponse({'orders': orders})  # Ensure this returns the correct structure
+
+def change_status(request):
+    if request.method == 'POST':  # Ensure only POST requests are handled
+        print("View reached!")  # Debugging
+
+        user_id = request.session.get('user_id')
+        id_tpj = request.POST.get('id_tpj')  # Changed to POST
+        print("User ID:", user_id, "Order ID:", id_tpj)  # Debugging
+
+        connection = get_db_connection()
+        try:
+            print("HELLOHELLOHELLOHELLO123123123123123123123123")
+            cursor = connection.cursor()
+
+            cursor.execute("""
+                UPDATE tr_pemesanan_jasa tpj
+                SET idpekerja = %s, tglpekerjaan = %s
+                WHERE tpj.id = %s;
+            """, [user_id, datetime.now().strftime("%Y-%m-%d"), id_tpj])
+            print(f"Rows affected: {cursor.rowcount}")
+
+            cursor.execute("""
+                UPDATE tr_pemesanan_status tps
+                SET idstatus = (SELECT id FROM STATUS_PESANAN WHERE status = 'Menunggu Pekerja Berangkat' LIMIT 1)
+                WHERE tps.idtrpemesanan = %s;
+            """, [id_tpj])
+
+            connection.commit()
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status': 'error', 'message': 'Database error'}, status=500)
+        finally:
+            connection.close()
+
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
 def status_pekerjaan_dashboard(request):
     return render(request, 'status_pekerjaan.html')
