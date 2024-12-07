@@ -124,9 +124,6 @@ def get_voucher_data_to_buy(request, kode_voucher):
     cursor.close()
     return JsonResponse(data)
 
-def tes_testimoni(request):
-
-    return render(request, "tes_testimoni.html")
 
 def tes(request):
 
