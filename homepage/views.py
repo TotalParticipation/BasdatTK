@@ -20,24 +20,25 @@ def homepage(request):
             role = "guest"
         else:
             # Determine the user's role from the database
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT CASE 
                     WHEN EXISTS (SELECT 1 FROM pekerja WHERE id = %s) THEN 'pekerja'
                     WHEN EXISTS (SELECT 1 FROM pelanggan WHERE id = %s) THEN 'pelanggan'
                     ELSE 'guest'
                 END AS role
-            """, [user_id, user_id])
+            """,
+                [user_id, user_id],
+            )
             role_result = cursor.fetchone()
             role = role_result[0] if role_result else "guest"
 
         # Print the determined role for debugging
         print(f"Determined Role: {role}")
-               
-        
+
         connection = get_db_connection()
         cursor = connection.cursor()
 
-    
         # Fetch categories and subcategories
         cursor.execute(
             """
@@ -440,24 +441,30 @@ def subcategory_detail(request, subcategory_id):
 
     try:
         # Fetch subcategory details
-        cursor.execute("""
-            SELECT id, namasubkategori, deskripsi
+        cursor.execute(
+            """
+            SELECT id, namasubkategori, deskripsi, kategorijasaid
             FROM subkategori_jasa
             WHERE id = %s
-        """, [subcategory_id])
+            """,
+            [subcategory_id],
+        )
         subcategory = cursor.fetchone()
 
         if not subcategory:
             return render(request, "error.html", {"message": "Subcategory not found"})
 
+        subcategory_id, subcategory_name, subcategory_description, kategori_jasa_id = subcategory
+
         # Get user ID and determine role
         user_id = request.session.get("user_id")
-        if not user_id:
-            user_role = "guest"
-            is_joined = False
-        else:
+        user_role = "guest"
+        is_joined = False
+
+        if user_id:
             # Check role
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT 'pekerja' AS role
                 FROM pekerja
                 WHERE id = %s
@@ -465,64 +472,77 @@ def subcategory_detail(request, subcategory_id):
                 SELECT 'pelanggan' AS role
                 FROM pelanggan
                 WHERE id = %s
-            """, [user_id, user_id])
+                """,
+                [user_id, user_id],
+            )
             role_result = cursor.fetchone()
             user_role = role_result[0] if role_result else "guest"
 
             # Check if pekerja is already joined
-            is_joined = False
             if user_role == "pekerja":
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT 1
                     FROM pekerja_kategori_jasa
                     WHERE pekerjaid = %s AND kategorijasaid = %s
-                """, [user_id, subcategory_id])
+                    """,
+                    [user_id, kategori_jasa_id],
+                )
                 is_joined = cursor.fetchone() is not None
 
-        # Fetch workers related to the subcategory
-        cursor.execute("""
-            SELECT pekerja.id, pekerja.namabank, pekerja.nomorrekening, pekerja.npwp, pekerja.rating
+        # Fetch workers related to the subcategory's category
+        cursor.execute(
+            """
+            SELECT pekerja.id, u.nama, u.nohp
             FROM pekerja
+            JOIN "user" u ON pekerja.id = u.id
             JOIN pekerja_kategori_jasa pkj ON pekerja.id = pkj.pekerjaid
             WHERE pkj.kategorijasaid = %s
-        """, [subcategory_id])
+            """,
+            [kategori_jasa_id],
+        )
         workers = cursor.fetchall()
 
         # Fetch sessions related to the subcategory
-        cursor.execute("""
-            SELECT subkategoriid, sesi, harga
+        cursor.execute(
+            """
+            SELECT sesi, harga
             FROM sesi_layanan
             WHERE subkategoriid = %s
-        """, [subcategory_id])
+            """,
+            [subcategory_id],
+        )
         sessions = cursor.fetchall()
 
         # Prepare context
         context = {
             "subcategory": {
-                "id": subcategory[0],
-                "name": subcategory[1],
-                "description": subcategory[2],
+                "id": subcategory_id,
+                "name": subcategory_name,
+                "description": subcategory_description,
             },
             "workers": [
                 {
                     "id": worker[0],
-                    "namabank": worker[1],
-                    "nomorrekening": worker[2],
-                    "npwp": worker[3],
-                    "rating": worker[4],
+                    "name": worker[1],
+                    "nohp": worker[2],
                 }
                 for worker in workers
             ],
             "sessions": [
                 {
-                    "sesi": session[1],
-                    "harga": session[2],
+                    "sesi": session[0],
+                    "harga": session[1],
                 }
                 for session in sessions
             ],
             "user_role": user_role,
             "is_joined": is_joined,
         }
+
+        print(
+            f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}"
+        )  # Debugging
 
         return render(request, "subcategory_detail.html", context)
 
@@ -542,37 +562,84 @@ def join_category(request):
             data = json.loads(request.body)
             subcategory_id = data.get("subcategory_id")
 
+            print(f"Subcategory ID: {subcategory_id}")  # Debugging
+
             # Ensure the user is a worker
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT 1 FROM pekerja WHERE id = %s
-            """, [user_id])
+            """,
+                [user_id],
+            )
             if cursor.fetchone() is None:
-                return JsonResponse({"success": False, "message": "User is not a worker."}, status=403)
+                return JsonResponse(
+                    {"success": False, "message": "User is not a worker."}, status=403
+                )
+
+            # Fetch the category ID from the subcategory
+            cursor.execute(
+                """
+                SELECT kategorijasaid
+                FROM subkategori_jasa
+                WHERE id = %s
+            """,
+                [subcategory_id],
+            )
+            category = cursor.fetchone()
+
+            if not category:
+                return JsonResponse(
+                    {"success": False, "message": "Invalid subcategory ID."}, status=400
+                )
+
+            category_id = category[0]
+            print(f"Category ID: {category_id}")  # Debugging
 
             # Check if already joined
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT 1
                 FROM pekerja_kategori_jasa
                 WHERE pekerjaid = %s AND kategorijasaid = %s
-            """, [user_id, subcategory_id])
+            """,
+                [user_id, category_id],
+            )
             if cursor.fetchone():
-                return JsonResponse({"success": False, "message": "Already joined this category."}, status=400)
+                return JsonResponse(
+                    {"success": False, "message": "Already joined this category."},
+                    status=400,
+                )
 
             # Insert into pekerja_kategori_jasa
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO pekerja_kategori_jasa (pekerjaid, kategorijasaid)
                 VALUES (%s, %s)
-            """, [user_id, subcategory_id])
+            """,
+                [user_id, category_id],
+            )
             connection.commit()
 
             return JsonResponse({"success": True})
 
         except Exception as e:
             print(f"Error joining category: {e}")
-            return JsonResponse({"success": False, "message": "An error occurred."}, status=500)
+            return JsonResponse(
+                {"success": False, "message": "An error occurred."}, status=500
+            )
 
         finally:
             cursor.close()
             connection.close()
 
-    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+    return JsonResponse(
+        {"success": False, "message": "Invalid request method."}, status=405
+    )
+
+from django.http import HttpResponseRedirect
+
+def redirect_to_other_api(request, nohp):
+    # get base url
+    base_url = request.build_absolute_uri('/')[:-1]
+    other_api_url = f"{base_url}/profile/{nohp}/"
+    return HttpResponseRedirect(other_api_url)

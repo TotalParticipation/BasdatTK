@@ -1,12 +1,26 @@
 {% extends "base.html" %} {% block content %}
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
 <div class="max-w-4xl mx-auto mt-10">
   <!-- Subcategory Information -->
   <div class="bg-white shadow rounded-lg p-6 mb-6">
     <h1 class="text-2xl font-bold mb-2">{{ subcategory.name }}</h1>
     <p class="text-gray-600">{{ subcategory.description }}</p>
-    <p class="mt-2">
-      <strong>Kategori:</strong> {{ subcategory.category_name }}
-    </p>
   </div>
 
   <!-- Testimonials Section -->
@@ -26,36 +40,38 @@
     {% endif %}
   </div>
 
-<!-- Workers Section -->
-<div class="mt-6">
-  <h3 class="font-bold">Pekerja</h3>
-  
-  <!-- "Gabung" Button for Workers -->
-  {% if user_role == "pekerja" and not is_joined %}
-      <button
-          class="bg-green-500 text-white px-4 py-2 rounded mt-4"
-          onclick="joinCategory('{{ subcategory.id }}')">
-          Gabung
-      </button>
-  {% endif %}
-  
-  <!-- List of Workers -->
-  {% if workers %}
-      <ul class="mt-4">
-          {% for worker in workers %}
-              <li class="border-b py-2">
-                  <p><strong>Bank:</strong> {{ worker.namabank }}</p>
-                  <p><strong>No Rekening:</strong> {{ worker.nomorrekening }}</p>
-                  <p><strong>NPWP:</strong> {{ worker.npwp }}</p>
-                  <p><strong>Rating:</strong> {{ worker.rating }}</p>
-              </li>
-          {% endfor %}
-      </ul>
-  {% else %}
-      <p class="text-gray-600 mt-4">Belum ada pekerja untuk subkategori ini.</p>
-  {% endif %}
-</div>
+  <!-- Workers Section -->
+  <div class="mt-6">
+    <h3 class="font-bold">Pekerja</h3>
 
+    <!-- "Gabung" Button for Workers -->
+    {% if user_role == "pekerja" and not is_joined %}
+    <button
+      class="bg-green-500 text-white px-4 py-2 rounded mt-4"
+      onclick="joinCategory('{{ subcategory.id }}')">
+      Gabung
+    </button>
+    {% elif user_role == "pekerja" and is_joined %}
+    <p>Anda tergabung disini</p>
+
+    {% endif %}
+
+<!-- List of Workers -->
+{% if workers %}
+<ul class="mt-4">
+  {% for worker in workers %}
+  <li class="border-b py-2">
+    <a href="{% url 'redirect_profile' worker.nohp %}" class="text-blue-500 hover:underline">
+      {{ worker.name }}
+  </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-600 mt-4">Belum ada pekerja untuk subkategori ini.</p>
+{% endif %}
+
+  </div>
 
   <!-- Service Sessions Section -->
   <div class="mt-6">
@@ -154,27 +170,31 @@
       modal.classList.toggle("hidden");
     }
 
-    function joinCategory(subcategory_id) {
+    function joinCategory(subcategoryId) {
+      console.log("Joining category with subcategory ID:", subcategoryId);
+
       fetch("/homepage/join-category/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": "{{ csrf_token }}",
+          "X-CSRFToken": getCookie("csrftoken"), // Ensure CSRF token is included
         },
-        body: JSON.stringify({ subcategory_id: subcategory_id }),
+        body: JSON.stringify({ subcategory_id: subcategoryId }),
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log("Response from server:", data);
+
           if (data.success) {
-            alert("Berhasil bergabung dengan kategori!");
-            location.reload();
+            alert("Successfully joined the category!");
+            location.reload(); // Reload the page to reflect the changes
           } else {
-            alert(data.message || "Terjadi kesalahan.");
+            alert(`Failed to join the category: ${data.message}`);
           }
         })
         .catch((error) => {
-          console.error("Error:", error);
-          alert("Terjadi kesalahan saat bergabung.");
+          console.error("Error sending join request:", error);
+          alert("An error occurred while joining the category.");
         });
     }
   </script>
