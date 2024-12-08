@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'zillanAPP',
     'homepage',
+    'bastian',
 ]
 
 MIDDLEWARE = [
