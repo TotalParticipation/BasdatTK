@@ -7,6 +7,8 @@ from .forms import TransactionForm
 from datetime import datetime
 import uuid
 from uuid import UUID
+from django.http import JsonResponse
+import json
 
 def printTables():
     connection = get_db_connection()
@@ -493,9 +495,6 @@ def fetch_status_order(request):
     
     return JsonResponse({'orders': orders})
 
-from django.http import JsonResponse
-import json
-
 def update_status(request):
     if request.method == "POST":
         try:
@@ -540,6 +539,13 @@ def update_status(request):
                         SET IdStatus = %s
                         WHERE IdTrPemesanan = %s;
                     """, [new_status_id, order_id])
+
+                    if next_status == 'Pelayanan Jasa Sedang Dilakukan':
+                        cursor.execute("""
+                            UPDATE TR_PEMESANAN_JASA
+                            SET waktupekerjaan = now()
+                            WHERE Id = %s;
+                        """, [order_id])
 
                     # FUNGSI TRIGGER AKAN KETRIGGER DAN BIAYA DALAM TR_PEMESANAN_STATUS AKAN MASUK KE SALDO PEKERJA
                     connection.commit()
