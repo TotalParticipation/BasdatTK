@@ -242,11 +242,11 @@ def get_categories_and_subcategories(request):
         # Fetch categories and subcategories
         cursor.execute(
             """
-SELECT kj.Id AS category_id, kj.NamaKategori AS category_name, 
-       sj.Id AS subcategory_id, sj.NamaSubkategori AS subcategory_name
-FROM KATEGORI_JASA kj
-LEFT JOIN SUBKATEGORI_JASA sj ON kj.Id = sj.KategoriJasaId
-ORDER BY kj.Id, sj.Id;
+        SELECT kj.Id AS category_id, kj.NamaKategori AS category_name, 
+            sj.Id AS subcategory_id, sj.NamaSubkategori AS subcategory_name
+        FROM KATEGORI_JASA kj
+        LEFT JOIN SUBKATEGORI_JASA sj ON kj.Id = sj.KategoriJasaId
+        ORDER BY kj.Id, sj.Id;
         """
         )
         data = cursor.fetchall()
@@ -276,12 +276,16 @@ ORDER BY kj.Id, sj.Id;
         connection.close()
 
 
-def create_order(request):
+def create_order(request): 
     if request.method == "POST":
         connection = get_db_connection()
         cursor = connection.cursor()
 
         try:
+            # Generate a unique order ID
+            order_id = str(uuid.uuid4())  # Renamed to avoid conflict
+            print("Order ID: " + order_id)
+
             # Extract data from the POST request
             user_id = request.session.get("user_id")
             subcategory_id = request.POST.get("subcategory_id")
@@ -293,7 +297,7 @@ def create_order(request):
             cursor.execute(
                 """
                 SELECT id FROM metode_bayar WHERE nama = 'MyPay'
-            """
+                """
             )
             metode_bayar_result = cursor.fetchone()
 
@@ -313,7 +317,7 @@ def create_order(request):
                 """
                 SELECT harga FROM sesi_layanan
                 WHERE subkategoriid = %s AND sesi = %s
-            """,
+                """,
                 [subcategory_id, sesi],
             )
             result = cursor.fetchone()
@@ -330,7 +334,7 @@ def create_order(request):
                 cursor.execute(
                     """
                     SELECT potongan FROM diskon WHERE kode = %s
-                """,
+                    """,
                     [diskon],
                 )
                 discount_result = cursor.fetchone()
@@ -345,12 +349,12 @@ def create_order(request):
                     idpelanggan, idkategorijasa, sesi, iddiskon, idmetodebayar
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
+                """,
                 [
-                    str(uuid.uuid4()),  # Generate a new UUID for the order
+                    order_id,  # Use the new variable name
                     tanggal_pemesanan,
-                    tanggal_pemesanan,  # Assuming tglpekerjaan is the same for now
-                    f"{tanggal_pemesanan} 10:00:00",  # Dummy time for waktupekerjaan
+                    None,  # Assuming tglpekerjaan is None for now
+                    None,  # Dummy time for waktupekerjaan
                     total_biaya,
                     user_id,
                     subcategory_id,
@@ -358,6 +362,15 @@ def create_order(request):
                     diskon if diskon else None,
                     metode_bayar,  # Dynamically fetched from the database
                 ],
+            )
+
+            # Insert into TR_PEMESANAN_STATUS
+            cursor.execute(
+                """
+                INSERT INTO TR_PEMESANAN_STATUS 
+                VALUES (%s, (SELECT ID FROM STATUS_PESANAN WHERE status = 'Mencari Pekerja Terdekat'), NOW())
+                """,
+                [order_id],
             )
 
             connection.commit()
@@ -372,6 +385,7 @@ def create_order(request):
             connection.close()
     else:
         return JsonResponse({"error": "Invalid request method"}, status=405)
+
 
 
 def view_orders(request):

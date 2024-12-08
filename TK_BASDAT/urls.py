@@ -23,5 +23,6 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('zillanAPP.urls')),
+    path('homepage/', include('homepage.urls')), 
     path('', include('bastian.urls')),
 ]
