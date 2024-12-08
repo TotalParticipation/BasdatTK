@@ -39,8 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'zillanAPP',
+<<<<<<< HEAD
     'homepage',
+=======
+    'zillanAPP',
+>>>>>>> 3e1c7acbaeb5ff12b8a69a195dec5ea5f1a46205
 ]
 
 MIDDLEWARE = [
@@ -58,9 +61,13 @@ ROOT_URLCONF = 'TK_BASDAT.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+<<<<<<< HEAD
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+=======
         'DIRS': [
             BASE_DIR / 'templates'
         ],
+>>>>>>> 3e1c7acbaeb5ff12b8a69a195dec5ea5f1a46205
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

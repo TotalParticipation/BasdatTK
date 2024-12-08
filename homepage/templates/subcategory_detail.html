@@ -1,0 +1,183 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+  <!-- Subcategory Information -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h1 class="text-2xl font-bold mb-2">{{ subcategory.name }}</h1>
+    <p class="text-gray-600">{{ subcategory.description }}</p>
+    <p class="mt-2">
+      <strong>Kategori:</strong> {{ subcategory.category_name }}
+    </p>
+  </div>
+
+  <!-- Testimonials Section -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Testimoni</h2>
+    {% if testimonials %} {% for testimonial in testimonials %}
+    <div class="border-b border-gray-200 py-4">
+      <p>
+        <strong>{{ testimonial.user }}</strong> -
+        <span>{{ testimonial.date }}</span>
+      </p>
+      <p>{{ testimonial.text }}</p>
+      <p class="text-yellow-500">Rating: {{ testimonial.rating }}</p>
+    </div>
+    {% endfor %} {% else %}
+    <p class="text-gray-600">Belum ada testimoni untuk subkategori ini.</p>
+    {% endif %}
+  </div>
+
+<!-- Workers Section -->
+<div class="mt-6">
+  <h3 class="font-bold">Pekerja</h3>
+  
+  <!-- "Gabung" Button for Workers -->
+  {% if user_role == "pekerja" and not is_joined %}
+      <button
+          class="bg-green-500 text-white px-4 py-2 rounded mt-4"
+          onclick="joinCategory('{{ subcategory.id }}')">
+          Gabung
+      </button>
+  {% endif %}
+  
+  <!-- List of Workers -->
+  {% if workers %}
+      <ul class="mt-4">
+          {% for worker in workers %}
+              <li class="border-b py-2">
+                  <p><strong>Bank:</strong> {{ worker.namabank }}</p>
+                  <p><strong>No Rekening:</strong> {{ worker.nomorrekening }}</p>
+                  <p><strong>NPWP:</strong> {{ worker.npwp }}</p>
+                  <p><strong>Rating:</strong> {{ worker.rating }}</p>
+              </li>
+          {% endfor %}
+      </ul>
+  {% else %}
+      <p class="text-gray-600 mt-4">Belum ada pekerja untuk subkategori ini.</p>
+  {% endif %}
+</div>
+
+
+  <!-- Service Sessions Section -->
+  <div class="mt-6">
+    <h3 class="font-bold">Daftar Sesi Layanan</h3>
+    {% if sessions %}
+    <ul>
+      {% for session in sessions %}
+      <li class="border-b py-2 flex justify-between">
+        <div>
+          <p><strong>Sesi:</strong> {{ session.sesi }}</p>
+          <p><strong>Harga:</strong> Rp {{ session.harga }}</p>
+        </div>
+        <button
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onclick="openModal('{{ subcategory.id }}', '{{ session.sesi }}')">
+          Pesan Jasa
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Belum ada sesi layanan untuk subkategori ini.</p>
+    {% endif %}
+  </div>
+
+  <!-- Modal for Creating an Order -->
+  <div
+    id="modal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-6 rounded shadow-md w-96">
+      <h2 class="text-xl font-bold mb-4">Pesan Jasa</h2>
+      <form method="POST" action="/homepage/create-order/">
+        {% csrf_token %}
+        <input type="hidden" id="subcategory_id" name="subcategory_id" />
+        <input type="hidden" id="sesi" name="sesi" />
+
+        <div class="mb-4">
+          <label for="tanggal_pemesanan" class="block text-sm font-medium"
+            >Tanggal Pemesanan</label
+          >
+          <input
+            type="date"
+            id="tanggal_pemesanan"
+            name="tanggal_pemesanan"
+            class="w-full border rounded-md p-2"
+            required />
+        </div>
+        <div class="mb-4">
+          <label for="diskon" class="block text-sm font-medium"
+            >Kode Diskon</label
+          >
+          <input
+            type="text"
+            id="diskon"
+            name="diskon"
+            class="w-full border rounded-md p-2" />
+        </div>
+        <div class="mb-4">
+          <label for="metode_bayar" class="block text-sm font-medium"
+            >Metode Bayar</label
+          >
+          <select
+            id="metode_bayar"
+            name="metode_bayar"
+            class="w-full border rounded-md p-2"
+            required>
+            <option value="">Pilih Metode Bayar</option>
+            <option value="1">MyPay</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
+          Pesan
+        </button>
+      </form>
+      <button
+        onclick="toggleModal()"
+        class="w-full text-center text-blue-600 underline mt-4">
+        Batal
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function openModal(subcategory_id, sesi) {
+      console.log("Opening modal with subcategory_id:", subcategory_id);
+      console.log("Opening modal with sesi:", sesi);
+      document.getElementById("subcategory_id").value = subcategory_id;
+      document.getElementById("sesi").value = sesi;
+      toggleModal();
+    }
+
+    function toggleModal() {
+      const modal = document.getElementById("modal");
+      modal.classList.toggle("hidden");
+    }
+
+    function joinCategory(subcategory_id) {
+      fetch("/homepage/join-category/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({ subcategory_id: subcategory_id }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Berhasil bergabung dengan kategori!");
+            location.reload();
+          } else {
+            alert(data.message || "Terjadi kesalahan.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Terjadi kesalahan saat bergabung.");
+        });
+    }
+  </script>
+
+  {% endblock %}
+</div>
