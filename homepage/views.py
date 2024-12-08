@@ -38,7 +38,9 @@ def homepage(request):
 
         # Print the determined role for debugging
         print(f"Determined Role: {user_role}")
-
+        cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+        namap = cursor.fetchone()
+        namap = namap[0]
         # Fetch categories and subcategories
         cursor.execute(
             """
@@ -69,7 +71,7 @@ def homepage(request):
                 )
 
         return render(
-            request, "homepage.html", {"categories": categories, "user_role": user_role}
+            request, "homepage.html", {"categories": categories, "user_role": user_role, "nama":namap}
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
@@ -464,6 +466,8 @@ def subcategory_detail(request, subcategory_id):
         )
         subcategory = cursor.fetchone()
 
+     
+
         if not subcategory:
             return render(request, "error.html", {"message": "Subcategory not found"})
 
@@ -473,6 +477,9 @@ def subcategory_detail(request, subcategory_id):
         user_id = request.session.get("user_id")
         user_role = "guest"
         is_joined = False
+        cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+        nama = cursor.fetchone()
+        nama = nama[0]
 
         if user_id:
             # Check role
@@ -506,7 +513,7 @@ def subcategory_detail(request, subcategory_id):
         # Fetch workers related to the subcategory's category
         cursor.execute(
             """
-            SELECT pekerja.id, u.nama, u.nohp
+            SELECT DISTINCT pekerja.id, u.nama, u.nohp
             FROM pekerja
             JOIN "user" u ON pekerja.id = u.id
             JOIN pekerja_kategori_jasa pkj ON pekerja.id = pkj.pekerjaid
@@ -551,10 +558,13 @@ def subcategory_detail(request, subcategory_id):
             ],
             "user_role": user_role,
             "is_joined": is_joined,
+            "nama": nama
+       
         }
+        
 
         print(
-            f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}"
+            f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}, nama: {nama}"
         )  # Debugging
 
         return render(request, "subcategory_detail.html", context)
