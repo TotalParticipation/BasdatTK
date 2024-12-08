@@ -1,4 +1,10 @@
 {% extends "base.html" %} {% block content %}
+
+{% if user_role == "pekerja" %}
+{% include 'navbar_pekerja.html'%}
+{% elif user_role == "pelanggan" %}
+{% include 'navbar_pelanggan.html'%}
+{% endif %}
 <div class="max-w-3xl mx-auto mt-10">
   <div class="bg-white shadow-md rounded p-6">
     <div class="flex flex-wrap mb-4">
