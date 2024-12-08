@@ -448,6 +448,7 @@ def view_orders(request):
     finally:
         cursor.close()
         connection.close()
+        return render(request, "order.html", {"orders": orders_data})
 
 
 def subcategory_detail(request, subcategory_id):

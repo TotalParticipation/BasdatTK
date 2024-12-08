@@ -7,7 +7,7 @@ urlpatterns: list[URLResolver] = [
     path('categories/', get_categories_and_subcategories, name='categories'),
     path('subcategory/<uuid:subcategory_id>/', subcategory_detail, name='subcategory_detail'),
     path("create-order/", create_order, name="create_order"),
-    path("view-orders/", view_orders, name="view_orders"),
+    path("view-order/", view_orders, name="view_orders"),
     path("join-category/", join_category, name="join_category"),    
     path('redirect-profile/<str:nohp>/', redirect_to_other_api, name='redirect_profile'),
 
