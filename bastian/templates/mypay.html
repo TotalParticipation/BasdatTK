@@ -64,6 +64,13 @@
     </style>
 </head>
 <body>
+    {% if role == "pekerja" %}
+    <!-- Include the pekerja navbar -->
+        {% include "navbar_pekerja.html" %}
+    {% elif role == "pelanggan" %}
+    <!-- Include the pelanggan navbar -->
+        {% include "navbar_pelanggan.html" %}
+    {% endif %}
     <!-- Header Section -->
     <div class="header">
         <div>No HP: <strong>{{ user_phone }}</strong></div>

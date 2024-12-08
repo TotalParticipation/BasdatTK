@@ -31,11 +31,16 @@ def transaction_view(request):
     if not user_id:
         return redirect('login')
 
-    user_phone, user_balance, jasa_options, user_role = None, 0, [], None
+    user_phone, user_balance, jasa_options, role = None, 0, [], None
+    nama = ''
 
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
+            cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+            nama = cursor.fetchone()
+            nama = nama[0]
+
             # Fetch user details
             cursor.execute("""SELECT nohp, saldomypay FROM "user" WHERE id = %s;""", [user_id])
             user_data = cursor.fetchone()
@@ -46,7 +51,7 @@ def transaction_view(request):
             cursor.execute("""SELECT * FROM PELANGGAN WHERE id = %s;""", [user_id])
             pelanggan = cursor.fetchone()
             if pelanggan:
-                user_role = "pelanggan"
+                role = "pelanggan"
                 # Fetch jasa options only for pelanggan
                 cursor.execute("""
                                SELECT sj.namasubkategori, tpj.totalbiaya, tpj.id
@@ -58,7 +63,7 @@ def transaction_view(request):
                                """, [user_id])
                 jasa_options = cursor.fetchall()
             else:
-                user_role = "pekerja"
+                role = "pekerja"
 
     except Exception as e:
         print(f"Error fetching data: {e}")
@@ -67,11 +72,12 @@ def transaction_view(request):
 
     print("transaction_form.html")
     context = {
+        'nama': nama,
         'user_phone': user_phone,
         'user_balance': user_balance,
         'current_date': datetime.now().strftime("%A, %B %d, %Y"),
         'jasa_options': jasa_options,
-        'user_role': user_role,
+        'role': role,
     }
     return render(request, 'transaction_form.html', context)
 
@@ -139,12 +145,12 @@ def process_transaction(request):
                             """, [str(uuid.uuid4()), user_id, datetime.now().strftime("%Y-%m-%d"), service_price])
                             messages.success(request, "Pembayaran jasa berhasil dilakukan!")
 
-                            cursor.execute("""
-                                UPDATE TR_PEMESANAN_STATUS 
-                                SET IdStatus = (SELECT id from STATUS_PESANAN WHERE status = 'Pesanan Selesai')
-                                WHERE IdTrPemesanan = %s;
-                            """, [tr_pemesanan_jasa_id])
-                            messages.success(request, "Pembayaran jasa berhasil dilakukan!")
+                            # cursor.execute("""
+                            #     UPDATE TR_PEMESANAN_STATUS 
+                            #     SET IdStatus = (SELECT id from STATUS_PESANAN WHERE status = 'Pesanan Selesai')
+                            #     WHERE IdTrPemesanan = %s;
+                            # """, [tr_pemesanan_jasa_id])
+                            # messages.success(request, "Pembayaran jasa berhasil dilakukan!")
                     else:
                         messages.error(request, "Data pembayaran jasa tidak valid!")
                 
@@ -212,12 +218,25 @@ def mypay_dashboard(request):
     user_phone = None
     user_balance = 0
     transactions = []
+    nama = ''
+    role = ''
 
     # Connect to the database
     connection = get_db_connection()
 
     try:
         with connection.cursor() as cursor:
+            cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+            nama = cursor.fetchone()
+            nama = nama[0]
+
+            cursor.execute("""SELECT * FROM PELANGGAN WHERE id = %s;""", [user_id])
+            pelanggan = cursor.fetchone()
+            if pelanggan:
+                role = "pelanggan"
+            else:
+                role = "pekerja"
+
             # Query to get the user's phone number and balance
             cursor.execute("""
                 SELECT nohp, saldomypay
@@ -245,6 +264,8 @@ def mypay_dashboard(request):
 
     # Render the template with dynamic data
     context = {
+        'nama': nama,
+        'role': role,
         'user_phone': user_phone,
         'user_balance': user_balance,
         'transactions': transactions
@@ -258,8 +279,13 @@ def pekerjaan_dashboard(request):
 
     connection = get_db_connection()
     categories = []
+    nama = ''
     try:
         with connection.cursor() as cursor:
+            cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+            nama = cursor.fetchone()
+            nama = nama[0]
+
             # Fetch pekerja details
             cursor.execute("""SELECT * FROM PEKERJA WHERE id = %s;""", [user_id])
             pekerja = cursor.fetchone()
@@ -281,6 +307,7 @@ def pekerjaan_dashboard(request):
         connection.close()
 
     context = {
+        'nama': nama,
         'categories': categories,
     }
     return render(request, 'pekerjaan_jasa.html', context)
@@ -382,6 +409,7 @@ def status_pekerjaan_dashboard(request):
     if not user_id:
         return redirect('login')
 
+    nama = ''
     categories = []
     status = []
     connection = get_db_connection()
@@ -391,6 +419,9 @@ def status_pekerjaan_dashboard(request):
             pekerja = cursor.fetchone()
             if not pekerja:
                 return redirect('login')
+            cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+            nama = cursor.fetchone()
+            nama = nama[0]
 
             # Fetch categories
             cursor.execute("""
@@ -416,6 +447,7 @@ def status_pekerjaan_dashboard(request):
     print(categories)
     print(status)
     context = {
+        'nama': nama,
         'categories': categories,
         'status': status,
     }
@@ -469,7 +501,6 @@ def update_status(request):
         try:
             data = json.loads(request.body)
             order_id = data.get('order_id')
-            status_id = request.GET.get('status_id')
             next_status = ''
 
             connection = get_db_connection()
@@ -479,10 +510,11 @@ def update_status(request):
                     cursor.execute("""
                         SELECT sp.status
                         FROM STATUS_PESANAN sp
-                        JOIN TR_PEMESANAN_STATUS ON tps.IdStatus = sp.id
+                        JOIN TR_PEMESANAN_STATUS tps ON tps.IdStatus = sp.id
                         WHERE tps.IdTrPemesanan = %s;
                     """, [order_id])
                     result = cursor.fetchone()
+                    result = result[0]
 
                     if result == 'Menunggu Pekerja Berangkat':
                         next_status = 'Pekerja Tiba Di Lokasi'
@@ -493,9 +525,11 @@ def update_status(request):
                     elif result == 'Pelayanan Jasa Sedang Dilakukan':
                         next_status = 'Pesanan Selesai'
 
+                    print(result)
+                    print(next_status)
                     cursor.execute("""
                         SELECT sp.id
-                        FROM STATUS_PESANAN
+                        FROM STATUS_PESANAN sp
                         WHERE status = %s;
                     """, [next_status])
                     new_status_id = cursor.fetchone()
@@ -506,6 +540,8 @@ def update_status(request):
                         SET IdStatus = %s
                         WHERE IdTrPemesanan = %s;
                     """, [new_status_id, order_id])
+
+                    # FUNGSI TRIGGER AKAN KETRIGGER DAN BIAYA DALAM TR_PEMESANAN_STATUS AKAN MASUK KE SALDO PEKERJA
                     connection.commit()
 
             finally:

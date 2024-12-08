@@ -80,6 +80,13 @@
     </style>
 </head>
 <body>
+    {% if role == "pekerja" %}
+    <!-- Include the pekerja navbar -->
+        {% include "navbar_pekerja.html" %}
+    {% elif role == "pelanggan" %}
+    <!-- Include the pelanggan navbar -->
+        {% include "navbar_pelanggan.html" %}
+    {% endif %}
     <div class="header">
         <div>
             <p><strong>Saldo:</strong> Rp {{ user_balance|floatformat:0 }}</p>
@@ -98,7 +105,7 @@
                 <select id="transaction_state" name="category">
                     <option value="">--Pilih Kategori--</option>
                     <option value="topup">TopUp MyPay</option>
-                    {% if user_role == "pelanggan" %}
+                    {% if role == "pelanggan" %}
                         <option value="service_payment">Bayar Transaksi Jasa</option>
                     {% endif %}
                     <option value="transfer">Transfer MyPay</option>

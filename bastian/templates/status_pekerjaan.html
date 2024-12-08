@@ -59,11 +59,11 @@
             border-radius: 5px;
             font-size: 16px;
             background-color: white;
-            color: black; /* Ensure text is black */
+            color: black;
         }
 
         option {
-            color: black; /* Ensure dropdown options text is black */
+            color: black;
         }
 
         button {
@@ -121,6 +121,7 @@
     </style>
 </head>
 <body>
+    {% include "navbar_pekerja.html" %}
     <div class="dropdown-container">
         <div>
             <label for="category">Kategori Jasa:</label>
@@ -164,7 +165,6 @@
 
     <script>
         $(document).ready(function () {
-            // Fetch orders when the search button is clicked
             $('#search-btn').click(function () {
                 const categoryId = $('#category').val();
                 const statusId = $('#status').val();
@@ -196,7 +196,6 @@
                             ordersTableBody.append(row);
                         });
 
-                        // Attach event listeners to update buttons
                         $('.update-btn').click(function () {
                             const orderId = $(this).data('id');
 
@@ -208,8 +207,7 @@
                                 data: JSON.stringify({ order_id: orderId }),
                                 success: function (response) {
                                     if (response.success) {
-                                        alert('Status berhasil diperbarui!');
-                                        $('#search-btn').click(); // Refresh the table
+                                        $('#search-btn').click();
                                     } else {
                                         alert('Gagal memperbarui status: ' + response.error);
                                     }
