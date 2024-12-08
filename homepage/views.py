@@ -14,30 +14,30 @@ def homepage(request):
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
-        # Get the user ID from the session
+        # Get user ID and determine role
         user_id = request.session.get("user_id")
-        if not user_id:
-            role = "guest"
-        else:
-            # Determine the user's role from the database
+        user_role = "guest"
+
+
+        if user_id:
+            # Check role
             cursor.execute(
                 """
-                SELECT CASE 
-                    WHEN EXISTS (SELECT 1 FROM pekerja WHERE id = %s) THEN 'pekerja'
-                    WHEN EXISTS (SELECT 1 FROM pelanggan WHERE id = %s) THEN 'pelanggan'
-                    ELSE 'guest'
-                END AS role
-            """,
+                SELECT 'pekerja' AS role
+                FROM pekerja
+                WHERE id = %s
+                UNION
+                SELECT 'pelanggan' AS role
+                FROM pelanggan
+                WHERE id = %s
+                """,
                 [user_id, user_id],
             )
             role_result = cursor.fetchone()
-            role = role_result[0] if role_result else "guest"
+            user_role = role_result[0] if role_result else "guest"
 
         # Print the determined role for debugging
-        print(f"Determined Role: {role}")
-
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        print(f"Determined Role: {user_role}")
 
         # Fetch categories and subcategories
         cursor.execute(
@@ -53,7 +53,6 @@ def homepage(request):
         # Structure data for template
         categories = []
         category_map = {}
-
         for category_id, category_name, subcategory_id, subcategory_name in data:
             if category_id not in category_map:
                 category = {
@@ -70,7 +69,7 @@ def homepage(request):
                 )
 
         return render(
-            request, "homepage.html", {"categories": categories, "role": role}
+            request, "homepage.html", {"categories": categories, "user_role": user_role}
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
