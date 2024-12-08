@@ -6,6 +6,9 @@ from utils.db_utils import get_db_connection
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+
 
 # from .models import Subcategory, ServiceSession, Worker, Testimonial
 
@@ -17,7 +20,6 @@ def homepage(request):
         # Get user ID and determine role
         user_id = request.session.get("user_id")
         user_role = "guest"
-
 
         if user_id:
             # Check role
@@ -71,7 +73,9 @@ def homepage(request):
                 )
 
         return render(
-            request, "homepage.html", {"categories": categories, "user_role": user_role, "nama":namap}
+            request,
+            "homepage.html",
+            {"categories": categories, "user_role": user_role, "nama": namap},
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
@@ -278,7 +282,7 @@ def get_categories_and_subcategories(request):
         connection.close()
 
 
-def create_order(request): 
+def create_order(request):
     if request.method == "POST":
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -314,7 +318,7 @@ def create_order(request):
             if not user_id or not subcategory_id or not sesi or not tanggal_pemesanan:
                 return JsonResponse({"error": "Missing required fields"}, status=400)
 
-            # Calculate total biaya (dummy logic for now)
+            # Calculate total biaya
             cursor.execute(
                 """
                 SELECT harga FROM sesi_layanan
@@ -377,7 +381,14 @@ def create_order(request):
 
             connection.commit()
 
-            return redirect(reverse("homepage"))
+            return JsonResponse(
+                {
+                    "success": "Order created successfully",
+                    "redirect_url": reverse("view_pemesanan"),
+                },
+                status=201,
+            )
+
         except Exception as e:
             print(f"Error creating order: {e}")
             return JsonResponse({"error": str(e)}, status=500)
@@ -388,6 +399,37 @@ def create_order(request):
     else:
         return JsonResponse({"error": "Invalid request method"}, status=405)
 
+
+@csrf_exempt
+def cancel_order(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        order_id = data.get("order_id")
+
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        try:
+            # Delete the order's references in TR_PEMESANAN_STATUS
+            cursor.execute(
+                """
+            DELETE FROM TR_PEMESANAN_STATUS WHERE IdTrPemesanan = %s
+        """,
+                [order_id],
+            )
+
+            cursor.execute(
+                """
+            DELETE FROM TR_PEMESANAN_JASA WHERE Id = %s
+        """,
+                [order_id],
+            )
+            connection.commit()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+        finally:
+            cursor.close()
+            connection.close()
 
 
 def view_orders(request):
@@ -467,12 +509,12 @@ def subcategory_detail(request, subcategory_id):
         )
         subcategory = cursor.fetchone()
 
-     
-
         if not subcategory:
             return render(request, "error.html", {"message": "Subcategory not found"})
 
-        subcategory_id, subcategory_name, subcategory_description, kategori_jasa_id = subcategory
+        subcategory_id, subcategory_name, subcategory_description, kategori_jasa_id = (
+            subcategory
+        )
 
         # Get user ID and determine role
         user_id = request.session.get("user_id")
@@ -559,10 +601,8 @@ def subcategory_detail(request, subcategory_id):
             ],
             "user_role": user_role,
             "is_joined": is_joined,
-            "nama": nama
-       
+            "nama": nama,
         }
-        
 
         print(
             f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}, nama: {nama}"
@@ -573,7 +613,6 @@ def subcategory_detail(request, subcategory_id):
     finally:
         cursor.close()
         connection.close()
-
 
 
 def join_category(request):
@@ -660,10 +699,61 @@ def join_category(request):
         {"success": False, "message": "Invalid request method."}, status=405
     )
 
+
 from django.http import HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+
 
 def redirect_to_other_api(request, nohp):
     # get base url
-    base_url = request.build_absolute_uri('/')[:-1]
+    base_url = request.build_absolute_uri("/")[:-1]
     other_api_url = f"{base_url}/profile/{nohp}/"
     return HttpResponseRedirect(other_api_url)
+
+
+def view_pemesanan_jasa(request):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return redirect("login")
+
+        # Fetch orders for the logged-in user
+        cursor.execute(
+            """
+            SELECT pj.id, sj.namasubkategori, pj.sesi, pj.totalbiaya, 
+                   u.nama, sp.status pekerja_nama
+            FROM tr_pemesanan_jasa pj
+            LEFT JOIN subkategori_jasa sj ON pj.idkategorijasa = sj.id
+            LEFT JOIN pekerja p ON pj.idpekerja = p.id
+            LEFT JOIN "user" u ON p.id = u.id
+            LEFT JOIN tr_pemesanan_status ps ON pj.id = ps.idtrpemesanan
+            LEFT JOIN status_pesanan sp ON ps.idstatus = sp.id
+            WHERE pj.idpelanggan = %s
+            """,
+            [user_id],
+        )
+        orders = cursor.fetchall()
+
+        # Prepare context
+        context = {
+            "orders": [
+                {
+                    "id": order[0],
+                    "subcategory_name": order[1],
+                    "sesi": order[2],
+                    "total_price": order[3],
+                    "worker_name": order[4] or "Belum Ada Pekerja",
+                    "status": order[5],
+                }
+                for order in orders
+            ]
+        }
+
+        return render(request, "view_pemesanan_jasa.html", context)
+
+    finally:
+        cursor.close()
+        connection.close()

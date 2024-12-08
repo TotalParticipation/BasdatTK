@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+<h1>View Pemesanan Jasa</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Subkategori Jasa</th>
+      <th>Sesi</th>
+      <th>Harga</th>
+      <th>Nama Pekerja</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    <tr>
+      <td>{{ order.subcategory_name }}</td>
+      <td>{{ order.sesi }}</td>
+      <td>Rp {{ order.total_price }}</td>
+      <td>{{ order.worker_name }}</td>
+      <td>{{ order.status }}</td>
+      <td>
+        {% if order.status == 'Menunggu Pembayaran' or order.status == 'Mencari Pekerja Terdekat' %}
+        <button onclick="cancelOrder('{{ order.id }}')">Batalkan</button>
+        {% elif order.status == "Pesanan Selesai" %}
+        <button onclick="createTestimonial('{{ order.id }}')">Buat Testimoni</button>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<script>
+  function cancelOrder(orderId) {
+    fetch("{% url 'cancel_order' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Order cancelled successfully");
+          location.reload();
+        } else {
+          alert("Error cancelling order: " + data.error);
+        }
+      });
+  }
+  function createTestimonial(orderId) {
+    // Redirect to testimonial creation page
+    window.location.href = `/create-testimonial/${orderId}/`;
+  }
+</script>
+{% endblock %}
