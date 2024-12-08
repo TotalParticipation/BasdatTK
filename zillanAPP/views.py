@@ -183,7 +183,7 @@ def view_profile_pekerja(request):
     with connection.cursor() as cursor:
 
         cursor.execute( """
-        SELECT kj.namakategori
+        SELECT DISTINCT kj.namakategori
         FROM kategori_jasa kj
         JOIN pekerja_kategori_jasa pkj ON kj.id = pkj.kategorijasaid
         WHERE pkj.pekerjaid = %s;
@@ -389,7 +389,7 @@ def view_profile_pekerja2(request, nohp):
         with connection.cursor() as cursor:
 
             cursor.execute( """
-                SELECT kj.namakategori
+                SELECT DISTINCT kj.namakategori
                 FROM kategori_jasa kj
                 JOIN pekerja_kategori_jasa pkj ON kj.id = pkj.kategorijasaid
                 WHERE pkj.pekerjaid = %s;
