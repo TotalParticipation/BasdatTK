@@ -79,7 +79,7 @@ def homepage(request):
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
-    
+
     finally:
         cursor.close()
         connection.close()
@@ -516,9 +516,9 @@ def subcategory_detail(request, subcategory_id):
         user_role = "guest"
         is_joined = False
         nama = None
-        
+
         if user_id:
-            print (f"User ID: {user_id}")  # Debugging
+            print(f"User ID: {user_id}")  # Debugging
             # Fetch user's name
             cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
             user_data = cursor.fetchone()
@@ -577,7 +577,19 @@ def subcategory_detail(request, subcategory_id):
         )
         sessions = cursor.fetchall()
 
-
+        # Fetch testimonials to show
+        cursor.execute(
+            """
+        SELECT t.idtrpemesananan, t.tgl, t.teks, t.rating, u.nama AS pelanggan_nama
+        FROM testimoni t
+        JOIN tr_pemesanan_jasa pj ON t.idtrpemesananan = pj.id
+        JOIN pelanggan p ON pj.idpelanggan = p.id
+        JOIN "user" u ON p.id = u.id
+        WHERE pj.idkategorijasa = %s
+        """,
+            [subcategory_id],
+        )
+        testimonials = cursor.fetchall()
 
         # Prepare context
         context = {
@@ -601,6 +613,16 @@ def subcategory_detail(request, subcategory_id):
                 }
                 for session in sessions
             ],
+            "testimonials": [
+                {
+          "order_id": testimonial[0],
+        "date": testimonial[1],
+        "text": testimonial[2],
+        "rating": testimonial[3],
+        "customer_name": testimonial[4],
+                }
+                for testimonial in testimonials
+            ],
             "user_role": user_role,
             "is_joined": is_joined,
             "nama": nama,
@@ -609,7 +631,6 @@ def subcategory_detail(request, subcategory_id):
         print(
             f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}, nama: {nama}"
         )  # Debugging
-      
 
         return render(request, "subcategory_detail.html", context)
 
@@ -745,7 +766,6 @@ def view_pemesanan_jasa(request):
         )
         orders = cursor.fetchall()
 
-    
         # Prepare context
         context = {
             "orders": [
