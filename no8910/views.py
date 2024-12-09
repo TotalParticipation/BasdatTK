@@ -71,11 +71,13 @@ def beli_voucher(request, kode_voucher):
                 user = cursor.fetchone()
                 # print(user)
                 saldo_user = user[7]
-                
                 harga_voucher = voucher[3]
+                print(saldo_user)
+                print(harga_voucher)
 
                 if(saldo_user >= harga_voucher):
-                    cursor.execute("UPDATE public.user SET saldomypay=saldomypay - %d WHERE id=%s", [harga_voucher, user_id])
+                    print("masuk")
+                    cursor.execute("UPDATE public.user SET saldomypay=saldomypay - %s WHERE id=%s", [harga_voucher, user_id])
                     
                     
                 else:
@@ -138,19 +140,20 @@ def create_testimony(request, id_tr_pemesanan_jasa):
         cursor.execute("SELECT * FROM tr_pemesanan_jasa WHERE id = %s", [id_tr_pemesanan_jasa])
         tr_pemesanan_jasa = cursor.fetchone()
 
-        user = request.user
+       
         rating = request.POST.get("rating")
         testimony_text = request.POST.get("testimony_text")
 
         
         tr_pemesanan_jasa_id = tr_pemesanan_jasa[0]
+        print("ID PEMESANAN :"+str(tr_pemesanan_jasa_id))
         tanggal_buat_testimoni = datetime.now().date()
         testimony_text = request.POST.get('testimony_text')
         
         rating = request.POST.get('rating')
 
         cursor.execute("""
-                       INSERT INTO testimoni(idtrpemesanan, tgl, teks, rating) 
+                       INSERT INTO testimoni(idtrpemesananan, tgl, teks, rating) 
                        VALUES(%s, %s, %s, %s)""",
                        [tr_pemesanan_jasa_id, tanggal_buat_testimoni, testimony_text, rating])
         

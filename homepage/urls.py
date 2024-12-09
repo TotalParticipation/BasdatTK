@@ -12,5 +12,4 @@ urlpatterns: list[URLResolver] = [
     path('redirect-profile/<str:nohp>/', redirect_to_other_api, name='redirect_profile'),
     path("view-pemesanan/", view_pemesanan_jasa, name="view_pemesanan"),
     path("cancel-order/", cancel_order, name="cancel_order"),
-
 ]   
