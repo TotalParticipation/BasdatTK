@@ -94,15 +94,25 @@ load_dotenv()  # Loads environment variables from .env file
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': os.getenv("DB_NAME"),
+#         'USER': os.getenv("DB_USER"),
+#         'PASSWORD': os.getenv("DB_PASSWORD"),
+#         'HOST': os.getenv("DB_HOST"),
+#         'PORT': os.getenv("DB_PORT"),
+#     }
+# }
+
+
+
+import dj_database_url
+
+tmpPostgres = "postgresql://TKBASDATDATABASE_owner:4aZLyG5uofbv@ep-curly-king-a1q2gfq8.ap-southeast-1.aws.neon.tech/TKBASDATDATABASE?sslmode=require"
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv("DB_NAME"),
-        'USER': os.getenv("DB_USER"),
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'HOST': os.getenv("DB_HOST"),
-        'PORT': os.getenv("DB_PORT"),
-    }
+    'default': dj_database_url.parse(tmpPostgres, conn_max_age=600, ssl_require=True)
 }
 
 
