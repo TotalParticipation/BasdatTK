@@ -1,14 +1,26 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {% block meta %} {% endblock meta %}
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TotalParticipation{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.2/dist/tailwind.min.css" rel="stylesheet">
 
-  <body>
-    {% block content %} {% endblock content %}
-  </body>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto p-6 mt-6 bg-white rounded-lg shadow-lg">
+        {% block content %}
+
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-10 p-4 bg-blue-600 text-white text-center">
+        <div class="max-w-6xl mx-auto">
+            &copy; TotalParticipation :D
+        </div>
+    </footer>
+</body>
 </html>

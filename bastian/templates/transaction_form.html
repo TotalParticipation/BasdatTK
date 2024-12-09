@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            border: 1px solid black;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header p {
+            margin: 5px 0;
+        }
+
+        .transaction-form {
+            padding: 20px;
+            background-color: white;
+            border: 1px solid black;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-form h2 {
+            margin-top: 0;
+            color: black;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid black;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+            color: black;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: black;
+            color: white;
+        }
+
+        .transaction-section {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    {% if role == "pekerja" %}
+    <!-- Include the pekerja navbar -->
+        {% include "navbar_pekerja.html" %}
+    {% elif role == "pelanggan" %}
+    <!-- Include the pelanggan navbar -->
+        {% include "navbar_pelanggan.html" %}
+    {% endif %}
+    <div class="header">
+        <div>
+            <p><strong>Saldo:</strong> Rp {{ user_balance|floatformat:0 }}</p>
+        </div>
+        <p><strong>Date:</strong> {{ current_date }}</p>
+    </div>
+
+    <div class="transaction-form">
+        <h2>Transaksi MyPay</h2>
+        <form method="post" action="{% url 'process_transaction' %}" id="transaction-form">
+            {% csrf_token %}
+
+            <!-- Transaction Category Dropdown -->
+            <div class="form-group">
+                <label for="transaction_state">Pilih Kategori Transaksi:</label>
+                <select id="transaction_state" name="category">
+                    <option value="">--Pilih Kategori--</option>
+                    <option value="topup">TopUp MyPay</option>
+                    {% if role == "pelanggan" %}
+                        <option value="service_payment">Bayar Transaksi Jasa</option>
+                    {% endif %}
+                    <option value="transfer">Transfer MyPay</option>
+                    <option value="withdrawal">Withdrawal</option>
+                </select>
+            </div>
+
+            <!-- TopUp Section -->
+            <div id="topup-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_nominal_topup">Nominal TopUp:</label>
+                    <input type="number" id="id_nominal_topup" name="nominal" min="0" step="1" placeholder="Masukkan nominal topup">
+                </div>
+            </div>
+
+            <!-- Service Payment Section -->
+            <div id="service_payment-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_jasa">Pilih Jasa:</label>
+                    <select id="id_jasa" name="tpj_id">
+                        <option value="">--Pilih Jasa--</option>
+                        {% for jasa in jasa_options %}
+                            <option value="{{ jasa.2 }}" data-price="{{ jasa.1 }}" data-name="{{ jasa.0 }}">
+                                {{ jasa.0 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_service_price">Harga Jasa:</label>
+                    <input type="number" id="id_service_price" name="service_price" readonly placeholder="Harga jasa" />
+                </div>
+                <div class="form-group">
+                    <label for="id_service_name">Nama Jasa:</label>
+                    <input type="text" id="id_service_name" name="service_name" readonly placeholder="Nama jasa" />
+                </div>
+            </div>
+            
+
+            <!-- Transfer Section -->
+            <div id="transfer-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_phone_number">No HP Tujuan:</label>
+                    <input type="text" id="id_phone_number" name="phone_number" maxlength="15" placeholder="Masukkan nomor HP tujuan">
+                </div>
+                <div class="form-group">
+                    <label for="id_nominal_transfer">Nominal Transfer:</label>
+                    <input type="number" id="id_nominal_transfer" name="nominal" min="0" step="any" placeholder="Masukkan nominal transfer">
+                </div>
+            </div>
+
+            <!-- Withdrawal Section -->
+            <div id="withdrawal-fields" class="transaction-section">
+                <div class="form-group">
+                    <label for="id_bank_name">Nama Bank:</label>
+                    <select id="id_bank_name" name="bank_name">
+                        <option value="1">Bank Central Asia (BCA)</option>
+                        <option value="2">Bank Mandiri</option>
+                        <option value="3">Bank Negara Indonesia (BNI)</option>
+                        <option value="4">Bank Rakyat Indonesia (BRI)</option>
+                        <option value="5">Bank CIMB Niaga</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_bank_account">No Rekening Bank:</label>
+                    <input type="text" id="id_bank_account" name="bank_account" maxlength="20" placeholder="Masukkan nomor rekening bank">
+                </div>
+                <div class="form-group">
+                    <label for="id_nominal_withdrawal">Nominal Withdrawal:</label>
+                    <input type="number" id="id_nominal_withdrawal" name="nominal" min="0" step="any" placeholder="Masukkan nominal withdrawal">
+                </div>
+            </div>
+
+            <button id="submit-btn" type="submit" style="display: none;">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const transactionState = document.getElementById('transaction_state');
+            const sections = document.querySelectorAll('.transaction-section');
+            const submitButton = document.getElementById('submit-btn');
+            const servicePriceInput = document.getElementById('id_service_price');
+            const serviceNameInput = document.getElementById('id_service_name');
+            const serviceSelect = document.getElementById('id_jasa');
+            
+            // Show/hide fields based on selected transaction state
+            transactionState.addEventListener('change', function () {
+                const selectedState = transactionState.value;
+
+                // Hide all sections initially
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                    const serviceField = document.getElementById('id_jasa');
+                    if (serviceField) {
+                        serviceField.required = false; // Make 'service' field not required when hidden
+                    }
+                });
+
+                // Show the relevant section based on selected state
+                if (selectedState) {
+                    const activeSection = document.getElementById(`${selectedState}-fields`);
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                        submitButton.style.display = 'block';  // Make sure submit button is visible
+                        
+                        // Make 'service' field required when the service payment section is shown
+                        if (selectedState === 'service_payment') {
+                            const serviceField = document.getElementById('id_jasa');
+                            if (serviceField) {
+                                serviceField.required = true;
+                            }
+                        }
+                    }
+                } else {
+                    submitButton.style.display = 'none'; // Hide submit button when no valid category is selected
+                }
+            });
+
+            // Trigger the change event to ensure the section is displayed when the page loads with a default selection
+            if (transactionState.value) {
+                transactionState.dispatchEvent(new Event('change'));
+            }
+
+            // Show/hide the service price and service name fields based on the selected jasa
+            serviceSelect.addEventListener('change', function () {
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const selectedPrice = selectedOption ? selectedOption.getAttribute('data-price') : 0;
+                const selectedName = selectedOption ? selectedOption.textContent : '';
+
+                servicePriceInput.value = selectedPrice;
+                serviceNameInput.value = selectedName;
+            });
+        });
+    </script>
+</body>
+</html>

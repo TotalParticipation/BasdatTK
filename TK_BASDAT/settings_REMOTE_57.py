@@ -12,9 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from dotenv import load_dotenv
 import os
 from pathlib import Path
-import os
-
-load_dotenv()  # Loads environment variables from .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +32,6 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
-    'no8910',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'zillanAPP',
-    'homepage',
-    'bastian',
 ]
 
 MIDDLEWARE = [
@@ -90,31 +84,21 @@ WSGI_APPLICATION = 'TK_BASDAT.wsgi.application'
 #     }
 # }
 
-
+load_dotenv()  # Loads environment variables from .env file
 
 # Example usage
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': os.getenv("DB_NAME"),
-#         'USER': os.getenv("DB_USER"),
-#         'PASSWORD': os.getenv("DB_PASSWORD"),
-#         'HOST': os.getenv("DB_HOST"),
-#         'PORT': os.getenv("DB_PORT"),
-#     }
-# }
-
-
-
-import dj_database_url
-
-tmpPostgres = "postgresql://TKBASDATDATABASE_owner:4aZLyG5uofbv@ep-curly-king-a1q2gfq8.ap-southeast-1.aws.neon.tech/TKBASDATDATABASE?sslmode=require"
-
 DATABASES = {
-    'default': dj_database_url.parse(tmpPostgres, conn_max_age=600, ssl_require=True)
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
+    }
 }
 
 

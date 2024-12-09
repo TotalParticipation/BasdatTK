@@ -10,23 +10,23 @@ import uuid
 from django.shortcuts import redirect
 from django.shortcuts import render, redirect
 
-# def printTables():
-#     connection = get_db_connection()
+def printTables():
+    connection = get_db_connection()
 
-#     with connection.cursor() as cursor:
-#         # Execute the equivalent of \dt
-#         cursor.execute("""
-#             SELECT table_name
-#             FROM information_schema.tables
-#             WHERE table_schema = 'public';
-#         """)
-#         rows = cursor.fetchall()
+    with connection.cursor() as cursor:
+        # Execute the equivalent of \dt
+        cursor.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public';
+        """)
+        rows = cursor.fetchall()
     
-#     # Print the result
-#     print("Tables in the database:")
-#     for row in rows:
-#         print(row[0])
-# printTables()
+    # Print the result
+    print("Tables in the database:")
+    for row in rows:
+        print(row[0])
+printTables()
 
 def login_view(request):
     connection = get_db_connection()
