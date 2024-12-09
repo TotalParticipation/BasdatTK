@@ -372,12 +372,10 @@ def fetch_orders(request):
     return JsonResponse({'orders': orders})  # Ensure this returns the correct structure
 
 def change_status(request):
-    if request.method == 'POST':  # Ensure only POST requests are handled
-        # print("View reached!")  # Debugging
+    if request.method == 'POST':
 
         user_id = request.session.get('user_id')
-        id_tpj = request.POST.get('id_tpj')  # Changed to POST
-        # print("User ID:", user_id, "Order ID:", id_tpj)  # Debugging
+        id_tpj = request.POST.get('id_tpj') 
 
         connection = get_db_connection()
         try:
@@ -505,7 +503,6 @@ def update_status(request):
             connection = get_db_connection()
             try:
                 with connection.cursor() as cursor:
-                    # Fetch the current status of the order
                     cursor.execute("""
                         SELECT sp.status
                         FROM STATUS_PESANAN sp
@@ -533,7 +530,6 @@ def update_status(request):
                     """, [next_status])
                     new_status_id = cursor.fetchone()
 
-                    # Update the order's status
                     cursor.execute("""
                         UPDATE TR_PEMESANAN_STATUS
                         SET IdStatus = %s
