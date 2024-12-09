@@ -79,6 +79,7 @@ def homepage(request):
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
+    
     finally:
         cursor.close()
         connection.close()
