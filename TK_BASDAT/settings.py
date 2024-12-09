@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
+load_dotenv()  # Loads environment variables from .env file
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -85,7 +87,7 @@ WSGI_APPLICATION = 'TK_BASDAT.wsgi.application'
 #     }
 # }
 
-load_dotenv()  # Loads environment variables from .env file
+
 
 # Example usage
 SECRET_KEY = os.getenv("SECRET_KEY")
