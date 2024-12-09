@@ -179,4 +179,4 @@ def printTables():
     print("Tables in the database:")
     for row in rows:
         print(row[0])
-printTables()
+# printTables()
