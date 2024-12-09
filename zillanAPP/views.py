@@ -10,23 +10,23 @@ import uuid
 from django.shortcuts import redirect
 from django.shortcuts import render, redirect
 
-# def printTables():
-#     connection = get_db_connection()
+def printTables():
+    connection = get_db_connection()
 
-#     with connection.cursor() as cursor:
-#         # Execute the equivalent of \dt
-#         cursor.execute("""
-#             SELECT table_name
-#             FROM information_schema.tables
-#             WHERE table_schema = 'public';
-#         """)
-#         rows = cursor.fetchall()
+    with connection.cursor() as cursor:
+        # Execute the equivalent of \dt
+        cursor.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public';
+        """)
+        rows = cursor.fetchall()
     
-#     # Print the result
-#     print("Tables in the database:")
-#     for row in rows:
-#         print(row[0])
-# printTables()
+    # Print the result
+    print("Tables in the database:")
+    for row in rows:
+        print(row[0])
+printTables()
 
 def login_view(request):
     connection = get_db_connection()
@@ -41,6 +41,7 @@ def login_view(request):
                 SELECT id, nama, pwd FROM "user" WHERE nohp = %s
             """, [nohp])
             user = cursor.fetchone()
+            
 
         if user:
             # user[0] is the user ID, user[1] is the name, user[2] is the stored password
@@ -50,6 +51,7 @@ def login_view(request):
             if password == stored_password:
                 # If passwords match, proceed to check if the user is Pelanggan or Pekerja
                 request.session['user_id'] = str(user_id)  # Store user ID in the session
+                
                 request.session['username'] = user_name  # Store username in the session
 
                 with connection.cursor() as cursor:
@@ -58,10 +60,10 @@ def login_view(request):
                         SELECT * FROM pelanggan WHERE id = %s
                     """, [user_id])
                     pelanggan = cursor.fetchone()
-
+                    
                     if pelanggan:
                         # If the user is a Pelanggan, redirect to their profile
-                        
+
                         return redirect("profile_pelanggan")
 
                     # Check if the user is a "Pekerja"
@@ -74,7 +76,7 @@ def login_view(request):
                         # If the user is a Pekerja, redirect to their profile
                        
                         return redirect("profile_pekerja")
-
+                
                 # If neither, you can show an error or redirect to a default page
                 return  # Default redirect if user is neither Pelanggan nor Pekerja
 

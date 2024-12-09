@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Pekerjaan</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            border: 1px solid black;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header p {
+            margin: 5px 0;
+        }
+
+        .dropdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            border: 1px solid black;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: black;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid black;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+            color: black;
+        }
+
+        option {
+            color: black;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: black;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: black;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .update-btn {
+            padding: 6px 12px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .update-btn:hover {
+            background-color: #333;
+        }
+
+        .no-update-btn {
+            padding: 6px 12px;
+            background-color: #ccc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    {% include "navbar_pekerja.html" %}
+    <div class="dropdown-container">
+        <div>
+            <label for="category">Kategori Jasa:</label>
+            <select id="category" name="category">
+                <option value="">Pilih Kategori</option>
+                {% for category in categories %}
+                <option value="{{ category.0 }}">{{ category.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                <option value="">Pilih Status</option>
+                {% for stat in status %}
+                <option value="{{ stat.0 }}">{{ stat.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button id="search-btn">Search</button>
+    </div>
+
+    <table id="orders-table">
+        <thead>
+            <tr>
+                <th>Nama Pelanggan</th>
+                <th>Subkategori Jasa</th>
+                <th>Tanggal Pemesanan</th>
+                <th>Sesi</th>
+                <th>Total Biaya</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically loaded -->
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            $('#search-btn').click(function () {
+                const categoryId = $('#category').val();
+                const statusId = $('#status').val();
+
+                $.ajax({
+                    url: "{% url 'fetch_status_order' %}",
+                    data: { category_id: categoryId, status_id: statusId },
+                    success: function (response) {
+                        const ordersTableBody = $('#orders-table tbody');
+                        ordersTableBody.empty();
+
+                        response.orders.forEach(order => {
+                            const updateButton = 
+                                order.status !== 'Pesanan Selesai' && order.status !== 'Pesanan Dibatalkan' 
+                                ? `<button class="update-btn" data-id="${order.id}">Update</button>` 
+                                : `<button class="no-update-btn" disabled>Update</button>`;
+
+                            const row = ` 
+                                <tr>
+                                    <td>${order.nama}</td>
+                                    <td>${order.namasubkategori}</td>
+                                    <td>${order.tglpemesanan}</td>
+                                    <td>${order.sesi}</td>
+                                    <td>${order.biaya}</td>
+                                    <td>${order.status}</td>
+                                    <td>${updateButton}</td>
+                                </tr>
+                            `;
+                            ordersTableBody.append(row);
+                        });
+
+                        $('.update-btn').click(function () {
+                            const orderId = $(this).data('id');
+
+                            $.ajax({
+                                url: "{% url 'update_status' %}",
+                                method: "POST",
+                                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                                contentType: "application/json",
+                                data: JSON.stringify({ order_id: orderId }),
+                                success: function (response) {
+                                    if (response.success) {
+                                        $('#search-btn').click();
+                                    } else {
+                                        alert('Gagal memperbarui status: ' + response.error);
+                                    }
+                                },
+                                error: function () {
+                                    alert('Terjadi kesalahan.');
+                                }
+                            });
+                        });
+                    },
+                    error: function () {
+                        alert('Gagal memuat data.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

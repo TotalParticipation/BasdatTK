@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+<div id="crdModalTestimoni" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold">Tulis Testimoni Anda</h3>
+            <button onclick="closeTestimoniModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="testimonyForm" method="POST">
+            <div class="flex flex-col gap-y-4">
+                <div>
+                    <label class="block mb-2">Rating: <span id="ratingnumber">5.0</span> <span id="ratingEmoji">😍</span></label>
+                    <input type="range" name="rating" id="rating" min="1" max="5" step="1" value="5" 
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                           oninput="updateRatingWithEmoji(this.value)">
+                </div>
+
+                <div>
+                    <label class="block mb-2">Komentar</label>
+                    <textarea name="testimony_text" id="testimony_text" class="w-full border rounded-md p-2 h-32" 
+                              placeholder="Tulis Komentar Anda"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-x-4 mt-4">
+                    <button type="button" onclick="closeTestimoniModal()" 
+                            class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700" 
+                            onclick="closeTestimoniModal()">
+                        Submit Testimoni
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    function updateRating(value) {
+        document.getElementById('ratingnumber').textContent = parseFloat(value).toFixed(1);
+    }   
+
+    function openTestimonyModal(id_transaksi_pemesanan) {
+        document.getElementById('testimonyForm').reset();
+        document.getElementById('crdModalTestimoni').classList.remove('hidden');
+        document.getElementById('crdModalTestimoni').classList.add('flex');
+
+        const form = document.getElementById("testimonyForm");
+        form.dataset.id_transaksi_pemesanan = id_transaksi_pemesanan;
+    }
+
+    function closeTestimoniModal() {
+        document.getElementById('crdModalTestimoni').classList.add('hidden');
+        document.getElementById('crdModalTestimoni').classList.remove('flex');
+        // document.getElementById('testimonyForm').reset();
+    }    
+
+    function createTestimony() {
+        const form = document.querySelector("#testimonyForm");
+        
+        const id_transaksi_pemesanan = form.dataset.id_transaksi_pemesanan;
+
+        fetch(`/no8910/create-testimony/${id_transaksi_pemesanan}/`, {
+            method: "POST",
+            body: new FormData(form),
+            
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("response ok");
+                return response.json();
+            } else {
+                console.log("Failed creating testimony");
+                throw new Error('Failed creating testimony!');
+            }
+        })
+        .then(data => {
+            console.log("Akhir");
+            closeTestimoniModal();
+            // window.location.reload();
+        })
+        .catch(err => console.log("ERROR"));
+
+        //form.reset();
+        //window.location.reload();
+        return false;
+    }
+    document.querySelector("#testimonyForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        createTestimony();
+    })
+
+    function updateRatingWithEmoji(value) {
+    document.getElementById('ratingnumber').textContent = value;
+    
+    const rating = parseFloat(value);
+    let emoji = '';
+    
+    if (rating == 1.5) {
+        emoji = '😔'; 
+    } else if (rating == 2) {
+        emoji = '🙁'; //
+    } else if (rating == 3) {
+        emoji = '😐'; 
+    } else if (rating == 4) {
+        emoji = '🙂'; 
+    } else {
+        emoji = '😄'; 
+    }
+    
+    document.getElementById('ratingEmoji').textContent = emoji;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateRatingWithEmoji(document.getElementById('rating').value);
+});
+
+</script>
+
+
+
+
+
+{% endblock content %}
