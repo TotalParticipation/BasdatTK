@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^5h19qgv()oxi+xb&@!3kw)79_qvs+m*vxecd2+^ant#7@+=ki'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "basdattk-production.up.railway.app"]
 
@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'TK_BASDAT.wsgi.application'
 
 # Example usage
 SECRET_KEY = os.getenv("SECRET_KEY")
-# DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # DATABASES = {
 #     'default': {
