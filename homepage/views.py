@@ -79,6 +79,7 @@ def homepage(request):
         )
     except Exception as e:
         return render(request, "homepage.html", {"error": str(e)})
+    
     finally:
         cursor.close()
         connection.close()
@@ -381,13 +382,7 @@ def create_order(request):
 
             connection.commit()
 
-            return JsonResponse(
-                {
-                    "success": "Order created successfully",
-                    "redirect_url": reverse("view_pemesanan"),
-                },
-                status=201,
-            )
+            return redirect("view_pemesanan")
 
         except Exception as e:
             print(f"Error creating order: {e}")
@@ -520,11 +515,16 @@ def subcategory_detail(request, subcategory_id):
         user_id = request.session.get("user_id")
         user_role = "guest"
         is_joined = False
-        cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
-        nama = cursor.fetchone()
-        nama = nama[0]
-
+        nama = None
+        
         if user_id:
+            print (f"User ID: {user_id}")  # Debugging
+            # Fetch user's name
+            cursor.execute("""SELECT nama FROM "user" WHERE id = %s;""", [user_id])
+            user_data = cursor.fetchone()
+            if user_data:
+                nama = user_data[0]
+
             # Check role
             cursor.execute(
                 """
@@ -577,6 +577,8 @@ def subcategory_detail(request, subcategory_id):
         )
         sessions = cursor.fetchall()
 
+
+
         # Prepare context
         context = {
             "subcategory": {
@@ -607,6 +609,7 @@ def subcategory_detail(request, subcategory_id):
         print(
             f"User Role: {user_role}, Is Joined: {is_joined}, User ID: {user_id}, nama: {nama}"
         )  # Debugging
+      
 
         return render(request, "subcategory_detail.html", context)
 
@@ -720,11 +723,16 @@ def view_pemesanan_jasa(request):
         if not user_id:
             return redirect("login")
 
-        # Fetch orders for the logged-in user
+        # Fetch orders for the logged-in user and check if testimonials exist
         cursor.execute(
             """
             SELECT pj.id, sj.namasubkategori, pj.sesi, pj.totalbiaya, 
-                   u.nama, sp.status pekerja_nama
+                   u.nama AS pekerja_nama, sp.status,
+                   EXISTS (
+                       SELECT 1
+                       FROM testimoni t
+                       WHERE t.idtrpemesananan = pj.id
+                   ) AS has_testimonial
             FROM tr_pemesanan_jasa pj
             LEFT JOIN subkategori_jasa sj ON pj.idkategorijasa = sj.id
             LEFT JOIN pekerja p ON pj.idpekerja = p.id
@@ -737,6 +745,7 @@ def view_pemesanan_jasa(request):
         )
         orders = cursor.fetchall()
 
+    
         # Prepare context
         context = {
             "orders": [
@@ -747,6 +756,7 @@ def view_pemesanan_jasa(request):
                     "total_price": order[3],
                     "worker_name": order[4] or "Belum Ada Pekerja",
                     "status": order[5],
+                    "has_testimonial": order[6],
                 }
                 for order in orders
             ]
